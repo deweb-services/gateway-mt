@@ -20,6 +20,7 @@ type objectAPIHandlersWrapper struct {
 	corsAllowedOrigins []string
 	httpClient         *http.Client
 	uuidResolverHost   string
+	bucketResolverHost string
 }
 
 // HeadObjectHandler stands for HeadObject

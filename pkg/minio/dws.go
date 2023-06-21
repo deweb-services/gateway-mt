@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 	"strconv"
 	"strings"
 
@@ -19,10 +20,16 @@ import (
 )
 
 const (
-	Sep          = "/"
-	VarKeyBucket = "bucket"
-	VarKeyObject = "object"
+	Sep                = "/"
+	VarKeyBucket       = "bucket"
+	VarKeyObject       = "object"
+	bucketResolverPath = "v1/bucket?bucket="
 )
+
+type BucketUniqueResolverResponse struct {
+	Error       string `json:"error,omitempty"`
+	IsAvailable bool   `json:"is_available,omitempty"`
+}
 
 func (h objectAPIHandlersWrapper) checkBucketExistence(r *http.Request) bool {
 	w := &MockResponseWriter{}
@@ -58,12 +65,29 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 }
 
 func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, error) {
+	funcName := "bucketNameIsAvailable"
 	vars := mux.Vars(r)
 	bucket := vars[VarKeyBucket]
 	if bucket == "" {
 		return false, nil
 	}
-	return true, nil
+	resp, err := h.httpClient.Get(path.Join(h.bucketResolverHost, bucketResolverPath) + bucket)
+	if err != nil {
+		return false, fmt.Errorf("function: %s, could not get response from bucket resolver: %w", funcName, err)
+	}
+	defer resp.Body.Close()
+	ba, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, fmt.Errorf("function: %s, could not read response: %w", funcName, err)
+	}
+	var res BucketUniqueResolverResponse
+	if err := json.Unmarshal(ba, &res); err != nil {
+		return false, fmt.Errorf("function: %s, could not unmarshall response: %w", funcName, err)
+	}
+	if res.Error != "" {
+		return false, fmt.Errorf("function: %s, error: %s", funcName, res.Error)
+	}
+	return res.IsAvailable, nil
 }
 
 func (h objectAPIHandlersWrapper) bucketPrefixSubstitutionWithoutObject(w http.ResponseWriter, r *http.Request) error {
