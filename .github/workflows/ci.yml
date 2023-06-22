@@ -62,7 +62,8 @@ jobs:
         with:
           tags: ghcr.io/${{ github.repository_owner }}/${{ github.repository }}/dev/${{ github.repository }}:${{ github.sha }}, ghcr.io/${{ github.repository_owner }}/${{ github.repository }}/dev/${{ github.repository }}:latest
           push: false
-          context: cmd/gateway-mt
+          context: .
+          file: cmd/gateway-mt/Dockerfile
           build-args: |
             DOCKER_ARCH=${{ vars.DOCKER_ARCH }}
             GO_VERSION=${{ vars.GO_VERSION }}
@@ -91,7 +92,8 @@ jobs:
         with:
           tags: ghcr.io/${{ github.repository_owner }}/${{ github.repository }}/dev/${{ github.repository }}:${{ github.sha }}, ghcr.io/${{ github.repository_owner }}/${{ github.repository }}/dev/${{ github.repository }}:latest
           push: false
-          context: cmd/authservice
+          context: .
+          file: cmd/authservice/Dockerfile
           build-args: |
             "DOCKER_ARCH=${{ vars.DOCKER_ARCH }}"
             "GO_VERSION=${{ vars.GO_VERSION }}"
