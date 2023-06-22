@@ -31,8 +31,8 @@ jobs:
           push: true
           context: cmd/gateway-mt
           build-args: |
-            DOCKER_ARCH=$DOCKER_ARCH
-            GO_VERSION=$GO_VERSION
+            DOCKER_ARCH=${{ env.DOCKER_ARCH }}
+            GO_VERSION=${{ env.GO_VERSION }}
 
   build-and-push-docker-image-authservice:
     environment: stage
@@ -58,5 +58,5 @@ jobs:
           push: true
           context: cmd/gateway-mt
           build-args: |
-            DOCKER_ARCH=$DOCKER_ARCH
-            GO_VERSION=$GO_VERSION
+            DOCKER_ARCH=${{ env.DOCKER_ARCH }}
+            GO_VERSION=${{ env.GO_VERSION }}
