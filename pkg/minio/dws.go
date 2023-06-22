@@ -7,16 +7,11 @@ import (
 	"io"
 	"net/http"
 	"path"
-	"strconv"
 	"strings"
 
-	"storj.io/minio/pkg/bucket/policy"
-
-	"storj.io/minio/cmd"
-
 	"github.com/gorilla/mux"
-
-	xhttp "storj.io/minio/cmd/http"
+	"storj.io/minio/cmd"
+	"storj.io/minio/pkg/bucket/policy"
 )
 
 const (
@@ -25,6 +20,31 @@ const (
 	VarKeyObject       = "object"
 	bucketResolverPath = "v1/bucket?bucket="
 )
+
+const (
+	ErrAccessDenied        = "ErrAccessDenied"
+	ErrInternalError       = "ErrInternalError"
+	ErrBucketAlreadyExists = "ErrBucketAlreadyExists"
+)
+
+var apiErrors = map[string]cmd.APIError{
+	ErrAccessDenied: {
+		Code:           "AccessDenied",
+		Description:    "Access Denied.",
+		HTTPStatusCode: http.StatusForbidden,
+	},
+	ErrInternalError: {
+		Code:           "InternalError",
+		Description:    "We encountered an internal error, please try again.",
+		HTTPStatusCode: http.StatusInternalServerError,
+	},
+	ErrBucketAlreadyExists: {
+		Code: "BucketAlreadyExists",
+		Description: "The requested bucket name is not available. The bucket " +
+			"namespace is shared by all users of the system. Please select a different name and try again.",
+		HTTPStatusCode: http.StatusConflict,
+	},
+}
 
 type BucketUniqueResolverResponse struct {
 	Error       string `json:"error,omitempty"`
@@ -90,23 +110,25 @@ func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, 
 	return res.IsAvailable, nil
 }
 
-func (h objectAPIHandlersWrapper) bucketPrefixSubstitutionWithoutObject(w http.ResponseWriter, r *http.Request) error {
+func (h objectAPIHandlersWrapper) bucketPrefixSubstitutionWithoutObject(w http.ResponseWriter, r *http.Request, fName string) error {
+	ctx := cmd.NewContext(r, w, fName)
 	vars := mux.Vars(r)
 	userID, err := h.getUserID(r, w)
 	if err != nil {
-		writeErrorResponse(w, "user not found", http.StatusBadRequest)
+		cmd.WriteErrorResponse(ctx, w, apiErrors[ErrAccessDenied], r.URL, false)
 		return fmt.Errorf("user not found")
 	}
 	vars[VarKeyBucket] = userID
 	return nil
 }
 
-func (h objectAPIHandlersWrapper) bucketPrefixSubstitution(w http.ResponseWriter, r *http.Request) error {
+func (h objectAPIHandlersWrapper) bucketPrefixSubstitution(w http.ResponseWriter, r *http.Request, fName string) error {
+	ctx := cmd.NewContext(r, w, fName)
 	vars := mux.Vars(r)
 	bucket := vars[VarKeyBucket]
 	userID, err := h.getUserID(r, w)
 	if err != nil {
-		writeErrorResponse(w, "user not found", http.StatusBadRequest)
+		cmd.WriteErrorResponse(ctx, w, apiErrors[ErrAccessDenied], r.URL, false)
 		return fmt.Errorf("user not found")
 	}
 	vars[VarKeyBucket] = userID
@@ -114,13 +136,14 @@ func (h objectAPIHandlersWrapper) bucketPrefixSubstitution(w http.ResponseWriter
 	return nil
 }
 
-func (h objectAPIHandlersWrapper) objectPrefixSubstitution(w http.ResponseWriter, r *http.Request) error {
+func (h objectAPIHandlersWrapper) objectPrefixSubstitution(w http.ResponseWriter, r *http.Request, fName string) error {
+	ctx := cmd.NewContext(r, w, fName)
 	vars := mux.Vars(r)
 	bucket := vars[VarKeyBucket]
 	object := vars[VarKeyObject]
 	userID, err := h.getUserID(r, w)
 	if err != nil {
-		writeErrorResponse(w, "user not found", http.StatusBadRequest)
+		cmd.WriteErrorResponse(ctx, w, apiErrors[ErrAccessDenied], r.URL, false)
 		return fmt.Errorf("user not found")
 	}
 	vars[VarKeyBucket] = userID
@@ -146,25 +169,4 @@ func (m *MockResponseWriter) WriteHeader(statusCode int) {
 
 func (m *MockResponseWriter) GetStatusCode() int {
 	return m.code
-}
-
-func writeErrorResponse(w http.ResponseWriter, response string, statusCode int) {
-	h := w.Header()
-	h.Set(xhttp.ContentType, "text/plain")
-	h.Set(xhttp.ContentLength, strconv.Itoa(len(response)))
-
-	h.Set(xhttp.ServerInfo, "MinIO")
-	h.Set(xhttp.AmzBucketRegion, "")
-	h.Set(xhttp.AcceptRanges, "bytes")
-
-	h.Del(xhttp.AmzServerSideEncryptionCustomerKey)
-	h.Del(xhttp.AmzServerSideEncryptionCopyCustomerKey)
-	h.Del(xhttp.AmzMetaUnencryptedContentLength)
-	h.Del(xhttp.AmzMetaUnencryptedContentMD5)
-
-	w.WriteHeader(statusCode)
-	if response != "" {
-		w.Write([]byte(response))
-		w.(http.Flusher).Flush()
-	}
 }
