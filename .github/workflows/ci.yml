@@ -64,12 +64,12 @@ jobs:
           push: false
           context: cmd/gateway-mt
           build-args: |
-            DOCKER_ARCH=${{ env.DOCKER_ARCH }}
-            GO_VERSION=${{ env.GO_VERSION }}
+            DOCKER_ARCH=${{ vars.DOCKER_ARCH }}
+            GO_VERSION=${{ vars.GO_VERSION }}
 
   build-docker-image-authservice:
     environment: stage
-    # needs: ["test"]
+    needs: ["test"]
     runs-on: ubuntu-latest
 
     steps:
@@ -93,6 +93,6 @@ jobs:
           push: false
           context: cmd/authservice
           build-args: |
-            DOCKER_ARCH=${{ env.DOCKER_ARCH }}
-            GO_VERSION=${{ env.GO_VERSION }}
+            "DOCKER_ARCH=${{ vars.DOCKER_ARCH }}"
+            "GO_VERSION=${{ vars.GO_VERSION }}"
 
