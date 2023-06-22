@@ -3,7 +3,6 @@ name: Go Build, Test, and Docker Build/Push
 on:
   push:
     branches:
-      - feat/DWS-420
       - main
   pull_request:
     branches:
@@ -30,7 +29,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.19'
+          go-version: ${{ vars.GO_VERSION }}
 
       - name: Checkout code
         uses: actions/checkout@v3
