@@ -38,7 +38,7 @@ jobs:
 
   build-docker-image-gateway-mt:
     environment: stage
-    needs: ["lint", "test"]
+    needs: ["test"]
     runs-on: ubuntu-latest
 
     steps:
@@ -70,7 +70,7 @@ jobs:
 
   build-docker-image-authservice:
     environment: stage
-    needs: ["lint", "test"]
+    needs: ["test"]
     runs-on: ubuntu-latest
 
     steps:
