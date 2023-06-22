@@ -1,6 +1,6 @@
 ARG DOCKER_ARCH
 ARG GO_VERSION
-FROM ${DOCKER_ARCH:-amd64}/golang:${GO_VERSION}-alpine:3.16 as builder
+FROM ${DOCKER_ARCH:-amd64}/golang:${GO_VERSION}-alpine3.16 as builder
 
 ADD . /authservice
 WORKDIR /authservice
@@ -18,8 +18,8 @@ WORKDIR /app
 
 COPY --from=builder /tmp/authservice /app/authservice
 
-COPY cmd/authservice/etc/nsswitch.conf /etc/nsswitch.conf
-COPY cmd/authservice/entrypoint /entrypoint
+COPY --from=builder /authservice/cmd/authservice/etc/nsswitch.conf /etc/nsswitch.conf
+COPY --from=builder /authservice/cmd/authservice/entrypoint /entrypoint
 
 ENTRYPOINT ["/entrypoint"]
 

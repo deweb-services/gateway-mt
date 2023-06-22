@@ -18,8 +18,8 @@ COPY --from=builder /tmp/gateway-mt /app/gateway-mt
 RUN apk add --no-cache libc6-compat
 RUN apk add --no-cache gcompat
 
-COPY cmd/gateway-mt/etc/nsswitch.conf /etc/nsswitch.conf
-COPY cmd/gateway-mt/entrypoint /entrypoint
+COPY --from=builder /gateway-mt/cmd/gateway-mt/etc/nsswitch.conf /etc/nsswitch.conf
+COPY --from=builder /gateway-mt/cmd/gateway-mt/entrypoint /entrypoint
 
 RUN chmod +x /app/gateway-mt
 
