@@ -140,7 +140,7 @@ func writeErrorResponse(w http.ResponseWriter, response string, statusCode int) 
 
 	w.WriteHeader(statusCode)
 	if response != "" {
-		w.Write([]byte(response))
+		_, _ = w.Write([]byte(response))
 		w.(http.Flusher).Flush()
 	}
 }
