@@ -52,8 +52,6 @@ func (h objectAPIHandlersWrapper) checkBucketExistence(r *http.Request) bool {
 }
 
 func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWriter) (string, error) {
-	h.logger.Info("getUserID started")
-	defer h.logger.Info("getUserID finished")
 	ctx := cmd.NewContext(r, w, "")
 	cred, _, _ := cmd.CheckRequestAuthTypeCredential(ctx, r, policy.HeadBucketAction, "", "")
 	m := map[string]any{
@@ -85,8 +83,6 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 }
 
 func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, error) {
-	h.logger.Info("bucketNameIsAvailable started")
-	defer h.logger.Info("bucketNameIsAvailable finished")
 	funcName := "bucketNameIsAvailable"
 	vars := mux.Vars(r)
 	bucket := vars[VarKeyBucket]
@@ -94,7 +90,7 @@ func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, 
 		return false, nil
 	}
 
-	res, err := h.authClient.CheckBucketIsUnique(r.Context(), bucket, trustedip.GetClientIP(h.trustedIPs, r), h.logger)
+	res, err := h.authClient.CheckBucketIsUnique(r.Context(), bucket, trustedip.GetClientIP(h.trustedIPs, r))
 	if err != nil {
 		h.logger.With("error", err, "bucket name", bucket).Error("check bucket is unique response error")
 		return false, fmt.Errorf("function: %s, could not get response from bucket resolver: %w", funcName, err)
