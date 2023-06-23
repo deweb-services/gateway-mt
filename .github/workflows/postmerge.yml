@@ -1,0 +1,64 @@
+name: Postmerge
+
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+jobs:
+
+  build-and-push-docker-image-gateway-mt:
+    environment: stage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.repository }}/dev/gateway-mt:${{ github.sha }}, ghcr.io/${{ github.repository_owner }}/${{ github.repository }}/dev/gateway-mt:latest
+          push: true
+          context: .
+          file: cmd/gateway-mt/Dockerfile
+          build-args: |
+            DOCKER_ARCH=${{ vars.DOCKER_ARCH }}
+            GO_VERSION=${{ vars.GO_VERSION }}
+
+  build-and-push-docker-image-authservice:
+    environment: stage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.repository }}/dev/authservice:${{ github.sha }}, ghcr.io/${{ github.repository_owner }}/${{ github.repository }}/dev/authservice:latest
+          push: true
+          context: .
+          file: cmd/authservice/Dockerfile
+          build-args: |
+            DOCKER_ARCH=${{ vars.DOCKER_ARCH }}
+            GO_VERSION=${{ vars.GO_VERSION }}
