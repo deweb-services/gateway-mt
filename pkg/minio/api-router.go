@@ -45,7 +45,7 @@ func RegisterAPIRouter(
 		},
 		authClient: authClient,
 		trustedIPs: trustedIPs,
-		logger:     logger,
+		logger:     logger.Sugar(),
 	}
 
 	// limit the conccurrency of uploads and downloads per macaroon head
