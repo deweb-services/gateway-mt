@@ -8,18 +8,18 @@ import (
 	"net/http"
 	"strings"
 
-	"storj.io/gateway-mt/pkg/trustedip"
+	"go.uber.org/zap"
 
 	"github.com/gorilla/mux"
+	"storj.io/gateway-mt/pkg/trustedip"
 	"storj.io/minio/cmd"
 	"storj.io/minio/pkg/bucket/policy"
 )
 
 const (
-	Sep                = "/"
-	VarKeyBucket       = "bucket"
-	VarKeyObject       = "object"
-	bucketResolverPath = "v1/bucket?bucket="
+	Sep          = "/"
+	VarKeyBucket = "bucket"
+	VarKeyObject = "object"
 )
 
 const (
@@ -54,6 +54,8 @@ func (h objectAPIHandlersWrapper) checkBucketExistence(r *http.Request) bool {
 }
 
 func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWriter) (string, error) {
+	h.logger.Info("getUserID started")
+	defer h.logger.Info("getUserID finished")
 	ctx := cmd.NewContext(r, w, "")
 	cred, _, _ := cmd.CheckRequestAuthTypeCredential(ctx, r, policy.HeadBucketAction, "", "")
 	m := map[string]any{
@@ -61,19 +63,23 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 	}
 	b, err := json.Marshal(m)
 	if err != nil {
+		h.logger.Error("marshal getUserID request", zap.Field{Key: "error", Interface: err})
 		return "", fmt.Errorf("json marshall error: %w", err)
 	}
 	resp, err := h.httpClient.Post(h.uuidResolverHost, "application/json", bytes.NewBuffer(b))
 	if err != nil {
+		h.logger.Error("getUserID post request", zap.Field{Key: "error", Interface: err})
 		return "", fmt.Errorf("http client post error: %w", err)
 	}
 	defer resp.Body.Close()
 	ba, err := io.ReadAll(resp.Body)
 	if err != nil {
+		h.logger.Error("getUserID read body", zap.Field{Key: "error", Interface: err})
 		return "", fmt.Errorf("could not read http response, error: %w", err)
 	}
 	var res map[string]string
 	if err := json.Unmarshal(ba, &res); err != nil {
+		h.logger.Error("getUserID unmarshall body", zap.Field{Key: "error", Interface: err}, zap.Field{Key: "body", String: string(ba)})
 		return "", fmt.Errorf("could not unmarshal http response, error: %w", err)
 	}
 
@@ -81,6 +87,8 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 }
 
 func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, error) {
+	h.logger.Info("bucketNameIsAvailable started")
+	defer h.logger.Info("bucketNameIsAvailable finished")
 	funcName := "bucketNameIsAvailable"
 	vars := mux.Vars(r)
 	bucket := vars[VarKeyBucket]
@@ -90,10 +98,12 @@ func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, 
 
 	res, err := h.authClient.CheckBucketIsUnique(r.Context(), bucket, trustedip.GetClientIP(h.trustedIPs, r))
 	if err != nil {
+		h.logger.Error("check bucket is unique response error", zap.Field{Key: "error", Interface: err}, zap.Field{Key: "bucket name", String: bucket})
 		return false, fmt.Errorf("function: %s, could not get response from bucket resolver: %w", funcName, err)
 	}
 
 	if res.Error != "" {
+		h.logger.Error("check bucket is unique result error", zap.Field{Key: "error", Interface: res.Error}, zap.Field{Key: "result", String: fmt.Sprintf("%#+v", res)})
 		return false, fmt.Errorf("function: %s, error: %s", funcName, res.Error)
 	}
 	return res.IsAvailable, nil

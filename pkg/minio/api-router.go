@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"go.uber.org/zap"
+
 	"storj.io/gateway-mt/pkg/trustedip"
 
 	"storj.io/gateway-mt/pkg/authclient"
@@ -29,6 +31,7 @@ func RegisterAPIRouter(
 	corsAllowedOrigins []string,
 	authClient *authclient.AuthClient,
 	trustedIPs trustedip.List,
+	logger *zap.Logger,
 ) {
 	api := objectAPIHandlersWrapper{
 		core: cmd.ObjectAPIHandlers{
@@ -42,6 +45,7 @@ func RegisterAPIRouter(
 		},
 		authClient: authClient,
 		trustedIPs: trustedIPs,
+		logger:     logger,
 	}
 
 	// limit the conccurrency of uploads and downloads per macaroon head
