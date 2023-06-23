@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"go.uber.org/zap"
-
 	"github.com/gorilla/mux"
 	"storj.io/gateway-mt/pkg/trustedip"
 	"storj.io/minio/cmd"
@@ -63,23 +61,23 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 	}
 	b, err := json.Marshal(m)
 	if err != nil {
-		h.logger.Error("marshal getUserID request", zap.Field{Key: "error", Interface: err})
+		h.logger.With("error", err).Error("marshal getUserID request")
 		return "", fmt.Errorf("json marshall error: %w", err)
 	}
 	resp, err := h.httpClient.Post(h.uuidResolverHost, "application/json", bytes.NewBuffer(b))
 	if err != nil {
-		h.logger.Error("getUserID post request", zap.Field{Key: "error", Interface: err})
+		h.logger.With("error", err).Error("getUserID post request")
 		return "", fmt.Errorf("http client post error: %w", err)
 	}
 	defer resp.Body.Close()
 	ba, err := io.ReadAll(resp.Body)
 	if err != nil {
-		h.logger.Error("getUserID read body", zap.Field{Key: "error", Interface: err})
+		h.logger.With("error", err).Error("getUserID read body")
 		return "", fmt.Errorf("could not read http response, error: %w", err)
 	}
 	var res map[string]string
 	if err := json.Unmarshal(ba, &res); err != nil {
-		h.logger.Error("getUserID unmarshall body", zap.Field{Key: "error", Interface: err}, zap.Field{Key: "body", String: string(ba)})
+		h.logger.With("error", err, "body", string(ba)).Error("getUserID unmarshall body")
 		return "", fmt.Errorf("could not unmarshal http response, error: %w", err)
 	}
 
@@ -98,12 +96,12 @@ func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, 
 
 	res, err := h.authClient.CheckBucketIsUnique(r.Context(), bucket, trustedip.GetClientIP(h.trustedIPs, r))
 	if err != nil {
-		h.logger.Error("check bucket is unique response error", zap.Field{Key: "error", Interface: err}, zap.Field{Key: "bucket name", String: bucket})
+		h.logger.With("error", err, "bucket name", bucket).Error("check bucket is unique response error")
 		return false, fmt.Errorf("function: %s, could not get response from bucket resolver: %w", funcName, err)
 	}
 
 	if res.Error != "" {
-		h.logger.Error("check bucket is unique result error", zap.Field{Key: "error", Interface: res.Error}, zap.Field{Key: "result", String: fmt.Sprintf("%#+v", res)})
+		h.logger.With("error", err, "result", res).Error("check bucket is unique result error")
 		return false, fmt.Errorf("function: %s, error: %s", funcName, res.Error)
 	}
 	return res.IsAvailable, nil

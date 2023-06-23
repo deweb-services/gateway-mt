@@ -28,7 +28,7 @@ type objectAPIHandlersWrapper struct {
 	authClient         *authclient.AuthClient
 	uuidResolverHost   string
 	trustedIPs         trustedip.List
-	logger             *zap.Logger
+	logger             *zap.SugaredLogger
 }
 
 // HeadObjectHandler stands for HeadObject
