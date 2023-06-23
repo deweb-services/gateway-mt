@@ -56,3 +56,8 @@ type AuthServiceResponse struct {
 	SecretKey   string `json:"secret_key"`
 	Public      bool   `json:"public"`
 }
+
+type BucketIsUniqueResponse struct {
+	Error       string `json:"error,omitempty"`
+	IsAvailable bool   `json:"is_available,omitempty"`
+}
