@@ -86,7 +86,6 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 
 func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, error) {
 	h.logger.Info("bucketNameIsAvailable started")
-	h.logger.With()
 	defer h.logger.Info("bucketNameIsAvailable finished")
 	funcName := "bucketNameIsAvailable"
 	vars := mux.Vars(r)

@@ -6,7 +6,6 @@ package authclient
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -207,7 +206,8 @@ func (a *AuthClient) CheckBucketIsUnique(ctx context.Context, bucketName string,
 		return BucketIsUniqueResponse{}, errdata.WithStatus(AuthServiceError.Wrap(err), http.StatusInternalServerError)
 	}
 
-	reqURL.Path = path.Join(reqURL.Path, fmt.Sprintf("/v1/bucket?bucket=%s", bucketName))
+	reqURL.Path = path.Join(reqURL.Path, "/v1/bucket")
+	reqURL.Query().Set("bucket", bucketName)
 	req, err := http.NewRequestWithContext(ctx, "GET", reqURL.String(), nil)
 	if err != nil {
 		return BucketIsUniqueResponse{}, errdata.WithStatus(AuthServiceError.Wrap(err), http.StatusInternalServerError)
