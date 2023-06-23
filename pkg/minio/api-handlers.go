@@ -9,6 +9,8 @@ import (
 	"path"
 	"strings"
 
+	"go.uber.org/zap"
+
 	"storj.io/gateway-mt/pkg/trustedip"
 
 	"storj.io/gateway-mt/pkg/authclient"
@@ -26,6 +28,7 @@ type objectAPIHandlersWrapper struct {
 	authClient         *authclient.AuthClient
 	uuidResolverHost   string
 	trustedIPs         trustedip.List
+	logger             *zap.Logger
 }
 
 // HeadObjectHandler stands for HeadObject
