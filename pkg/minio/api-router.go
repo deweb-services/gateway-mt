@@ -9,6 +9,10 @@ import (
 	"os"
 	"time"
 
+	"storj.io/gateway-mt/pkg/trustedip"
+
+	"storj.io/gateway-mt/pkg/authclient"
+
 	"github.com/gorilla/mux"
 	"storj.io/gateway-mt/pkg/server/gw"
 	"storj.io/gateway-mt/pkg/server/middleware"
@@ -17,7 +21,15 @@ import (
 )
 
 // RegisterAPIRouter - registers S3 compatible APIs.
-func RegisterAPIRouter(router *mux.Router, layer *gw.MultiTenancyLayer, domainNames []string, concurrentAllowed uint, corsAllowedOrigins []string) {
+func RegisterAPIRouter(
+	router *mux.Router,
+	layer *gw.MultiTenancyLayer,
+	domainNames []string,
+	concurrentAllowed uint,
+	corsAllowedOrigins []string,
+	authClient *authclient.AuthClient,
+	trustedIPs trustedip.List,
+) {
 	api := objectAPIHandlersWrapper{
 		core: cmd.ObjectAPIHandlers{
 			ObjectAPI: func() cmd.ObjectLayer { return layer },
@@ -28,7 +40,8 @@ func RegisterAPIRouter(router *mux.Router, layer *gw.MultiTenancyLayer, domainNa
 		httpClient: &http.Client{
 			Timeout: time.Second * 15,
 		},
-		bucketResolverHost: os.Getenv("BUCKET_RESOLVER_HOST"),
+		authClient: authClient,
+		trustedIPs: trustedIPs,
 	}
 
 	// limit the conccurrency of uploads and downloads per macaroon head

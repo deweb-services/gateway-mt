@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"path"
 	"strings"
+
+	"storj.io/gateway-mt/pkg/trustedip"
 
 	"github.com/gorilla/mux"
 	"storj.io/minio/cmd"
@@ -44,11 +45,6 @@ var apiErrors = map[string]cmd.APIError{
 			"namespace is shared by all users of the system. Please select a different name and try again.",
 		HTTPStatusCode: http.StatusConflict,
 	},
-}
-
-type BucketUniqueResolverResponse struct {
-	Error       string `json:"error,omitempty"`
-	IsAvailable bool   `json:"is_available,omitempty"`
 }
 
 func (h objectAPIHandlersWrapper) checkBucketExistence(r *http.Request) bool {
@@ -91,19 +87,12 @@ func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, 
 	if bucket == "" {
 		return false, nil
 	}
-	resp, err := h.httpClient.Get(path.Join(h.bucketResolverHost, bucketResolverPath) + bucket)
+
+	res, err := h.authClient.CheckBucketIsUnique(r.Context(), bucket, trustedip.GetClientIP(h.trustedIPs, r))
 	if err != nil {
 		return false, fmt.Errorf("function: %s, could not get response from bucket resolver: %w", funcName, err)
 	}
-	defer resp.Body.Close()
-	ba, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return false, fmt.Errorf("function: %s, could not read response: %w", funcName, err)
-	}
-	var res BucketUniqueResolverResponse
-	if err := json.Unmarshal(ba, &res); err != nil {
-		return false, fmt.Errorf("function: %s, could not unmarshall response: %w", funcName, err)
-	}
+
 	if res.Error != "" {
 		return false, fmt.Errorf("function: %s, error: %s", funcName, res.Error)
 	}

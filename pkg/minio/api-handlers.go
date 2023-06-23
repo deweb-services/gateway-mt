@@ -9,6 +9,10 @@ import (
 	"path"
 	"strings"
 
+	"storj.io/gateway-mt/pkg/trustedip"
+
+	"storj.io/gateway-mt/pkg/authclient"
+
 	"github.com/gorilla/mux"
 	"storj.io/minio/cmd"
 	xhttp "storj.io/minio/cmd/http"
@@ -19,8 +23,9 @@ type objectAPIHandlersWrapper struct {
 	core               cmd.ObjectAPIHandlers
 	corsAllowedOrigins []string
 	httpClient         *http.Client
+	authClient         *authclient.AuthClient
 	uuidResolverHost   string
-	bucketResolverHost string
+	trustedIPs         trustedip.List
 }
 
 // HeadObjectHandler stands for HeadObject

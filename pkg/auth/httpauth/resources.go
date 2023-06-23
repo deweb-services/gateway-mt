@@ -267,6 +267,12 @@ func (res *Resources) getAccess(w http.ResponseWriter, req *http.Request) {
 }
 
 func (res *Resources) getBucket(w http.ResponseWriter, req *http.Request) {
+	res.log.Debug("getBucket request", zap.String("remote address", req.RemoteAddr))
+	if !res.requestAuthorized(req) {
+		res.writeError(w, "getBucket", "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	reqName := req.URL.Query().Get("bucket")
 	ba := []byte(littleSalt + strings.ToLower(reqName))
 	h := sha256.New()

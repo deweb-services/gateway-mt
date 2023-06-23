@@ -109,7 +109,7 @@ func New(config Config, log *zap.Logger, trustedIPs trustedip.List, corsAllowedO
 		return nil, err
 	}
 
-	minio.RegisterAPIRouter(r, layer, dedupedDomains, concurrentAllowed, corsAllowedOrigins)
+	minio.RegisterAPIRouter(r, layer, dedupedDomains, concurrentAllowed, corsAllowedOrigins, authClient, trustedIPs)
 
 	r.Use(func(handler http.Handler) http.Handler {
 		return mhttp.TraceHandler(handler, mon)
