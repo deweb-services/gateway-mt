@@ -207,8 +207,9 @@ func (a *AuthClient) CheckBucketIsUnique(ctx context.Context, bucketName string,
 	}
 
 	reqURL.Path = path.Join(reqURL.Path, "/v1/bucket")
-	// nolint: staticcheck
-	reqURL.Query().Set("bucket", bucketName)
+	params := url.Values{}
+	params.Add("bucket", bucketName)
+	reqURL.RawQuery = params.Encode()
 	req, err := http.NewRequestWithContext(ctx, "GET", reqURL.String(), nil)
 	if err != nil {
 		return BucketIsUniqueResponse{}, errdata.WithStatus(AuthServiceError.Wrap(err), http.StatusInternalServerError)
