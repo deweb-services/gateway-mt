@@ -450,7 +450,7 @@ func (h objectAPIHandlersWrapper) PutBucketHandler(w http.ResponseWriter, r *htt
 func (h objectAPIHandlersWrapper) HeadBucketHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	defer mon.Task()(&ctx)(nil)
-	if err := h.bucketPrefixSubstitution(w, r, "HeadObject"); err != nil {
+	if err := h.bucketPrefixSubstitution(w, r, "HeadBucket"); err != nil {
 		return
 	}
 	h.core.HeadObjectHandler(w, r)
@@ -500,7 +500,7 @@ func (h objectAPIHandlersWrapper) DeleteBucketEncryptionHandler(w http.ResponseW
 func (h objectAPIHandlersWrapper) DeleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	defer mon.Task()(&ctx)(nil)
-	if err := h.bucketPrefixSubstitution(w, r, "DeleteObject"); err != nil {
+	if err := h.bucketPrefixSubstitution(w, r, "DeleteBucket"); err != nil {
 		return
 	}
 	h.core.DeleteObjectHandler(w, r)
