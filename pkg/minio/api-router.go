@@ -28,6 +28,7 @@ func RegisterAPIRouter(router *mux.Router, layer *gw.MultiTenancyLayer, domainNa
 		httpClient: &http.Client{
 			Timeout: time.Second * 15,
 		},
+		bucketResolverHost: os.Getenv("BUCKET_RESOLVER_HOST"),
 	}
 
 	// limit the conccurrency of uploads and downloads per macaroon head

@@ -6,23 +6,50 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
+	"path"
 	"strings"
 
-	"storj.io/minio/pkg/bucket/policy"
-
-	"storj.io/minio/cmd"
-
 	"github.com/gorilla/mux"
-
-	xhttp "storj.io/minio/cmd/http"
+	"storj.io/minio/cmd"
+	"storj.io/minio/pkg/bucket/policy"
 )
 
 const (
-	Sep          = "/"
-	VarKeyBucket = "bucket"
-	VarKeyObject = "object"
+	Sep                = "/"
+	VarKeyBucket       = "bucket"
+	VarKeyObject       = "object"
+	bucketResolverPath = "v1/bucket?bucket="
 )
+
+const (
+	ErrAccessDenied        = "ErrAccessDenied"
+	ErrInternalError       = "ErrInternalError"
+	ErrBucketAlreadyExists = "ErrBucketAlreadyExists"
+)
+
+var apiErrors = map[string]cmd.APIError{
+	ErrAccessDenied: {
+		Code:           "AccessDenied",
+		Description:    "Access Denied.",
+		HTTPStatusCode: http.StatusForbidden,
+	},
+	ErrInternalError: {
+		Code:           "InternalError",
+		Description:    "We encountered an internal error, please try again.",
+		HTTPStatusCode: http.StatusInternalServerError,
+	},
+	ErrBucketAlreadyExists: {
+		Code: "BucketAlreadyExists",
+		Description: "The requested bucket name is not available. The bucket " +
+			"namespace is shared by all users of the system. Please select a different name and try again.",
+		HTTPStatusCode: http.StatusConflict,
+	},
+}
+
+type BucketUniqueResolverResponse struct {
+	Error       string `json:"error,omitempty"`
+	IsAvailable bool   `json:"is_available,omitempty"`
+}
 
 func (h objectAPIHandlersWrapper) checkBucketExistence(r *http.Request) bool {
 	w := &MockResponseWriter{}
@@ -58,31 +85,50 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 }
 
 func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, error) {
+	funcName := "bucketNameIsAvailable"
 	vars := mux.Vars(r)
 	bucket := vars[VarKeyBucket]
 	if bucket == "" {
 		return false, nil
 	}
-	return true, nil
+	resp, err := h.httpClient.Get(path.Join(h.bucketResolverHost, bucketResolverPath) + bucket)
+	if err != nil {
+		return false, fmt.Errorf("function: %s, could not get response from bucket resolver: %w", funcName, err)
+	}
+	defer resp.Body.Close()
+	ba, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, fmt.Errorf("function: %s, could not read response: %w", funcName, err)
+	}
+	var res BucketUniqueResolverResponse
+	if err := json.Unmarshal(ba, &res); err != nil {
+		return false, fmt.Errorf("function: %s, could not unmarshall response: %w", funcName, err)
+	}
+	if res.Error != "" {
+		return false, fmt.Errorf("function: %s, error: %s", funcName, res.Error)
+	}
+	return res.IsAvailable, nil
 }
 
-func (h objectAPIHandlersWrapper) bucketPrefixSubstitutionWithoutObject(w http.ResponseWriter, r *http.Request) error {
+func (h objectAPIHandlersWrapper) bucketPrefixSubstitutionWithoutObject(w http.ResponseWriter, r *http.Request, fName string) error {
+	ctx := cmd.NewContext(r, w, fName)
 	vars := mux.Vars(r)
 	userID, err := h.getUserID(r, w)
 	if err != nil {
-		writeErrorResponse(w, "user not found", http.StatusBadRequest)
+		cmd.WriteErrorResponse(ctx, w, apiErrors[ErrAccessDenied], r.URL, false)
 		return fmt.Errorf("user not found")
 	}
 	vars[VarKeyBucket] = userID
 	return nil
 }
 
-func (h objectAPIHandlersWrapper) bucketPrefixSubstitution(w http.ResponseWriter, r *http.Request) error {
+func (h objectAPIHandlersWrapper) bucketPrefixSubstitution(w http.ResponseWriter, r *http.Request, fName string) error {
+	ctx := cmd.NewContext(r, w, fName)
 	vars := mux.Vars(r)
 	bucket := vars[VarKeyBucket]
 	userID, err := h.getUserID(r, w)
 	if err != nil {
-		writeErrorResponse(w, "user not found", http.StatusBadRequest)
+		cmd.WriteErrorResponse(ctx, w, apiErrors[ErrAccessDenied], r.URL, false)
 		return fmt.Errorf("user not found")
 	}
 	vars[VarKeyBucket] = userID
@@ -90,13 +136,14 @@ func (h objectAPIHandlersWrapper) bucketPrefixSubstitution(w http.ResponseWriter
 	return nil
 }
 
-func (h objectAPIHandlersWrapper) objectPrefixSubstitution(w http.ResponseWriter, r *http.Request) error {
+func (h objectAPIHandlersWrapper) objectPrefixSubstitution(w http.ResponseWriter, r *http.Request, fName string) error {
+	ctx := cmd.NewContext(r, w, fName)
 	vars := mux.Vars(r)
 	bucket := vars[VarKeyBucket]
 	object := vars[VarKeyObject]
 	userID, err := h.getUserID(r, w)
 	if err != nil {
-		writeErrorResponse(w, "user not found", http.StatusBadRequest)
+		cmd.WriteErrorResponse(ctx, w, apiErrors[ErrAccessDenied], r.URL, false)
 		return fmt.Errorf("user not found")
 	}
 	vars[VarKeyBucket] = userID
@@ -122,25 +169,4 @@ func (m *MockResponseWriter) WriteHeader(statusCode int) {
 
 func (m *MockResponseWriter) GetStatusCode() int {
 	return m.code
-}
-
-func writeErrorResponse(w http.ResponseWriter, response string, statusCode int) {
-	h := w.Header()
-	h.Set(xhttp.ContentType, "text/plain")
-	h.Set(xhttp.ContentLength, strconv.Itoa(len(response)))
-
-	h.Set(xhttp.ServerInfo, "MinIO")
-	h.Set(xhttp.AmzBucketRegion, "")
-	h.Set(xhttp.AcceptRanges, "bytes")
-
-	h.Del(xhttp.AmzServerSideEncryptionCustomerKey)
-	h.Del(xhttp.AmzServerSideEncryptionCopyCustomerKey)
-	h.Del(xhttp.AmzMetaUnencryptedContentLength)
-	h.Del(xhttp.AmzMetaUnencryptedContentMD5)
-
-	w.WriteHeader(statusCode)
-	if response != "" {
-		_, _ = w.Write([]byte(response))
-		w.(http.Flusher).Flush()
-	}
 }
