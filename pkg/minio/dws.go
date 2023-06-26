@@ -45,12 +45,6 @@ var apiErrors = map[string]cmd.APIError{
 	},
 }
 
-func (h objectAPIHandlersWrapper) checkBucketExistence(r *http.Request) bool {
-	w := &MockResponseWriter{}
-	h.core.HeadBucketHandler(w, r)
-	return w.GetStatusCode() == http.StatusOK
-}
-
 func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWriter) (string, error) {
 	ctx := cmd.NewContext(r, w, "")
 	cred, _, _ := cmd.CheckRequestAuthTypeCredential(ctx, r, policy.HeadBucketAction, "", "")
