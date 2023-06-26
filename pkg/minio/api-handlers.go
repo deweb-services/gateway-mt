@@ -186,9 +186,6 @@ func (h objectAPIHandlersWrapper) PutObjectHandler(w http.ResponseWriter, r *htt
 	if err := h.objectPrefixSubstitution(w, r, "PutObject"); err != nil {
 		return
 	}
-	if !h.checkBucketExistence(r) {
-		h.core.PutBucketHandler(w, r)
-	}
 	h.core.PutObjectHandler(w, r)
 }
 
@@ -448,9 +445,6 @@ func (h objectAPIHandlersWrapper) PutBucketHandler(w http.ResponseWriter, r *htt
 	if err := h.bucketPrefixSubstitution(w, r, "PutBucket"); err != nil {
 		return
 	}
-	if !h.checkBucketExistence(r) {
-		h.core.PutBucketHandler(w, r)
-	}
 	h.core.PutObjectHandler(w, r)
 }
 
@@ -460,9 +454,6 @@ func (h objectAPIHandlersWrapper) HeadBucketHandler(w http.ResponseWriter, r *ht
 	defer mon.Task()(&ctx)(nil)
 	if err := h.bucketPrefixSubstitution(w, r, "HeadBucket"); err != nil {
 		return
-	}
-	if !h.checkBucketExistence(r) {
-		h.core.PutBucketHandler(w, r)
 	}
 	h.core.HeadObjectHandler(w, r)
 }
@@ -529,9 +520,6 @@ func (h objectAPIHandlersWrapper) ListBucketsHandler(w http.ResponseWriter, r *h
 	defer mon.Task()(&ctx)(nil)
 	if err := h.bucketPrefixSubstitutionWithoutObject(w, r, "ListBuckets"); err != nil {
 		return
-	}
-	if !h.checkBucketExistence(r) {
-		h.core.PutBucketHandler(w, r)
 	}
 	h.core.ListBucketsHandler(w, r)
 }
