@@ -461,6 +461,9 @@ func (h objectAPIHandlersWrapper) HeadBucketHandler(w http.ResponseWriter, r *ht
 	if err := h.bucketPrefixSubstitution(w, r, "HeadBucket"); err != nil {
 		return
 	}
+	if !h.checkBucketExistence(r) {
+		h.core.PutBucketHandler(w, r)
+	}
 	h.core.HeadObjectHandler(w, r)
 }
 
@@ -527,6 +530,8 @@ func (h objectAPIHandlersWrapper) ListBucketsHandler(w http.ResponseWriter, r *h
 	if err := h.bucketPrefixSubstitutionWithoutObject(w, r, "ListBuckets"); err != nil {
 		return
 	}
-
+	if !h.checkBucketExistence(r) {
+		h.core.PutBucketHandler(w, r)
+	}
 	h.core.ListBucketsHandler(w, r)
 }
