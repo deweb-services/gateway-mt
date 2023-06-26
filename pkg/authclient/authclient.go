@@ -10,8 +10,6 @@ import (
 	"net/url"
 	"path"
 
-	"go.uber.org/zap"
-
 	"github.com/spacemonkeygo/monkit/v3"
 	"github.com/zeebo/errs"
 
@@ -191,10 +189,7 @@ func (a *AuthClient) GetHealthLive(ctx context.Context) (_ bool, err error) {
 }
 
 // CheckBucketIsUnique checks if bucket name is unique in auth service
-func (a *AuthClient) CheckBucketIsUnique(ctx context.Context, bucketName string, clientIP string, logger *zap.SugaredLogger) (_ BucketIsUniqueResponse, err error) {
-	defer logger.Info("start auth client check bucket")
-	logger.With("bucket name", bucketName, "base url", a.BaseURL, "token", a.Token).Debug("auth client check bucket")
-	defer logger.Info("end auth client check bucket")
+func (a *AuthClient) CheckBucketIsUnique(ctx context.Context, bucketName string, clientIP string) (_ BucketIsUniqueResponse, err error) {
 	defer mon.Task()(&ctx)(&err)
 
 	if len(bucketName) == 0 {
@@ -214,7 +209,6 @@ func (a *AuthClient) CheckBucketIsUnique(ctx context.Context, bucketName string,
 	if err != nil {
 		return BucketIsUniqueResponse{}, errdata.WithStatus(AuthServiceError.Wrap(err), http.StatusInternalServerError)
 	}
-	logger.With("bucket name", bucketName, "base url", a.BaseURL, "token", a.Token, "reqURL", reqURL.String()).Debug("auth client check bucket")
 
 	req.Header.Set("Authorization", "Bearer "+a.Token)
 	req.Header.Set("Forwarded", "for="+clientIP)
