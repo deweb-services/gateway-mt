@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"storj.io/gateway-mt/pkg/trustedip"
 	"storj.io/minio/cmd"
 	"storj.io/minio/pkg/bucket/policy"
 )
@@ -100,7 +99,8 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 	return res["uuid"], nil
 }
 
-func (h objectAPIHandlersWrapper) nodeBucketRequest(r *http.Request, method string, bucketName string) error {
+func (h objectAPIHandlersWrapper) nodeBucketRequest(r *http.Request, method string, bucketName string) (int, error) {
+	sc := 0
 	u := path.Join(h.nodeHost, nodeBucketPath)
 	var reader io.Reader
 	switch method {
@@ -114,51 +114,26 @@ func (h objectAPIHandlersWrapper) nodeBucketRequest(r *http.Request, method stri
 		ba, err := json.Marshal(p)
 		if err != nil {
 			h.logger.With("error", err).Error("nodeBucketRequest marshal request body")
-			return fmt.Errorf("marshal request body error: %w", err)
+			return sc, fmt.Errorf("marshal request body error: %w", err)
 		}
 		reader = bytes.NewBuffer(ba)
 	default:
 		h.logger.With("method", method).Error("nodeBucketRequest wrong method")
-		return fmt.Errorf("wrong http method: %s", method)
+		return sc, fmt.Errorf("wrong http method: %s", method)
 	}
 	req, err := http.NewRequestWithContext(r.Context(), method, u, reader)
 	if err != nil {
 		h.logger.With("error", err).Error("nodeBucketRequest new request")
-		return fmt.Errorf("could not create a request: %w", err)
+		return sc, fmt.Errorf("could not create a request: %w", err)
 	}
 	req.Header.Set("Authorization", "Bearer "+h.nodeToken)
 	resp, err := h.httpClient.Do(req)
 	if err != nil {
 		h.logger.With("error", err).Error("nodeBucketRequest do request")
-		return fmt.Errorf("could not do request: %w", err)
+		return sc, fmt.Errorf("could not do request: %w", err)
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		h.logger.With("status", resp.StatusCode).Error("nodeBucketRequest response status")
-		return fmt.Errorf("response status forbidden: %d", resp.StatusCode)
-	}
-	return nil
-}
-
-func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, error) {
-	funcName := "bucketNameIsAvailable"
-	vars := mux.Vars(r)
-	bucket := vars[VarKeyBucket]
-	if bucket == "" {
-		return false, nil
-	}
-
-	res, err := h.authClient.CheckBucketIsUnique(r.Context(), bucket, trustedip.GetClientIP(h.trustedIPs, r))
-	if err != nil {
-		h.logger.With("error", err, "bucket name", bucket).Error("check bucket is unique response error")
-		return false, fmt.Errorf("function: %s, could not get response from bucket resolver: %w", funcName, err)
-	}
-
-	if res.Error != "" {
-		h.logger.With("error", err, "result", res).Error("check bucket is unique result error")
-		return false, fmt.Errorf("function: %s, error: %s", funcName, res.Error)
-	}
-	return res.IsAvailable, nil
+	return resp.StatusCode, nil
 }
 
 func (h objectAPIHandlersWrapper) bucketPrefixSubstitutionWithoutObject(w http.ResponseWriter, r *http.Request, fName string) error {

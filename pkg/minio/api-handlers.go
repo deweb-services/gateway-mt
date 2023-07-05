@@ -434,29 +434,26 @@ func (h objectAPIHandlersWrapper) PutBucketNotificationHandler(w http.ResponseWr
 func (h objectAPIHandlersWrapper) PutBucketHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	defer mon.Task()(&ctx)(nil)
-	errCtx := cmd.NewContext(r, w, "PutBucket")
-	ok, err := h.bucketNameIsAvailable(r)
+	bucket := mux.Vars(r)[VarKeyBucket]
+	code, err := h.nodeBucketRequest(r, "POST", bucket)
 	if err != nil {
+		errCtx := cmd.NewContext(r, w, "CreateBucket")
 		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
 		return
 	}
-	if !ok {
+	if code >= 400 && code < 500 {
+		errCtx := cmd.NewContext(r, w, "CreateBucket")
 		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrBucketAlreadyExists], r.URL, false)
 		return
+	} else if code >= 500 {
+		errCtx := cmd.NewContext(r, w, "CreateBucket")
+		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
+		return
 	}
-	bucket := mux.Vars(r)[VarKeyBucket]
 	if err := h.bucketPrefixSubstitution(w, r, "PutBucket"); err != nil {
 		return
 	}
-	wr := NewWrapperResponseWriter(w)
-	h.core.PutObjectHandler(wr, r)
-	if wr.getCurrentStatus() > 299 {
-		return
-	}
-	if err := h.nodeBucketRequest(r, "POST", bucket); err != nil {
-		errCtx := cmd.NewContext(r, w, "CreateBucket")
-		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
-	}
+	h.core.PutObjectHandler(w, r)
 }
 
 // HeadBucketHandler stands for HeadBucket
@@ -464,15 +461,20 @@ func (h objectAPIHandlersWrapper) HeadBucketHandler(w http.ResponseWriter, r *ht
 	ctx := r.Context()
 	defer mon.Task()(&ctx)(nil)
 	bucket := mux.Vars(r)[VarKeyBucket]
-	if err := h.nodeBucketRequest(r, "HEAD", bucket); err != nil {
+	code, err := h.nodeBucketRequest(r, "HEAD", bucket)
+	if err != nil {
 		errCtx := cmd.NewContext(r, w, "HeadBucket")
+		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
+		return
+	}
+	errCtx := cmd.NewContext(r, w, "HeadBucket")
+	if code == 404 {
 		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrBucketDoesNotExist], r.URL, false)
-		return
+	} else if code >= 200 && code < 300 {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
 	}
-	if err := h.bucketPrefixSubstitution(w, r, "HeadBucket"); err != nil {
-		return
-	}
-	h.core.HeadObjectHandler(w, r)
 }
 
 func (h objectAPIHandlersWrapper) PostPolicyBucketHandler(w http.ResponseWriter, r *http.Request) {
@@ -528,7 +530,8 @@ func (h objectAPIHandlersWrapper) DeleteBucketHandler(w http.ResponseWriter, r *
 	if wr.getCurrentStatus() > 299 {
 		return
 	}
-	if err := h.nodeBucketRequest(r, "DELETE", bucket); err != nil {
+	code, err := h.nodeBucketRequest(r, "DELETE", bucket)
+	if err != nil || (code > 299 || code < 200) {
 		errCtx := cmd.NewContext(r, w, "DeleteBucket")
 		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
 	}
