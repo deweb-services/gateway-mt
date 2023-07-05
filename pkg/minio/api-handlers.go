@@ -27,8 +27,10 @@ type objectAPIHandlersWrapper struct {
 	httpClient         *http.Client
 	authClient         *authclient.AuthClient
 	uuidResolverHost   string
+	nodeHost           string
 	trustedIPs         trustedip.List
 	logger             *zap.SugaredLogger
+	nodeToken          string
 }
 
 // HeadObjectHandler stands for HeadObject
@@ -442,16 +444,27 @@ func (h objectAPIHandlersWrapper) PutBucketHandler(w http.ResponseWriter, r *htt
 		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrBucketAlreadyExists], r.URL, false)
 		return
 	}
+	bucket := mux.Vars(r)[VarKeyBucket]
 	if err := h.bucketPrefixSubstitution(w, r, "PutBucket"); err != nil {
 		return
 	}
 	h.core.PutObjectHandler(w, r)
+	if err := h.nodeBucketRequest(r, "POST", bucket); err != nil {
+		errCtx := cmd.NewContext(r, w, "CreateBucket")
+		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
+	}
 }
 
 // HeadBucketHandler stands for HeadBucket
 func (h objectAPIHandlersWrapper) HeadBucketHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	defer mon.Task()(&ctx)(nil)
+	bucket := mux.Vars(r)[VarKeyBucket]
+	if err := h.nodeBucketRequest(r, "HEAD", bucket); err != nil {
+		errCtx := cmd.NewContext(r, w, "HeadBucket")
+		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrBucketDoesNotExist], r.URL, false)
+		return
+	}
 	if err := h.bucketPrefixSubstitution(w, r, "HeadBucket"); err != nil {
 		return
 	}
@@ -502,10 +515,15 @@ func (h objectAPIHandlersWrapper) DeleteBucketEncryptionHandler(w http.ResponseW
 func (h objectAPIHandlersWrapper) DeleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	defer mon.Task()(&ctx)(nil)
+	bucket := mux.Vars(r)[VarKeyBucket]
 	if err := h.bucketPrefixSubstitution(w, r, "DeleteBucket"); err != nil {
 		return
 	}
 	h.core.DeleteObjectHandler(w, r)
+	if err := h.nodeBucketRequest(r, "DELETE", bucket); err != nil {
+		errCtx := cmd.NewContext(r, w, "DeleteBucket")
+		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
+	}
 }
 
 func (h objectAPIHandlersWrapper) PostRestoreObjectHandler(w http.ResponseWriter, r *http.Request) {

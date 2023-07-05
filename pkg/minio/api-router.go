@@ -46,7 +46,9 @@ func RegisterAPIRouter(
 		authClient: authClient,
 		trustedIPs: trustedIPs,
 		logger:     logger.Sugar(),
+		nodeToken:  os.Getenv("AUTH_TOKEN"),
 	}
+	api.nodeHost = api.parseNodeHost()
 
 	// limit the conccurrency of uploads and downloads per macaroon head
 	limit := middleware.NewMacaroonLimiter(concurrentAllowed,
