@@ -448,7 +448,11 @@ func (h objectAPIHandlersWrapper) PutBucketHandler(w http.ResponseWriter, r *htt
 	if err := h.bucketPrefixSubstitution(w, r, "PutBucket"); err != nil {
 		return
 	}
-	h.core.PutObjectHandler(w, r)
+	wr := NewWrapperResponseWriter(w)
+	h.core.PutObjectHandler(wr, r)
+	if wr.getCurrentStatus() > 299 {
+		return
+	}
 	if err := h.nodeBucketRequest(r, "POST", bucket); err != nil {
 		errCtx := cmd.NewContext(r, w, "CreateBucket")
 		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
@@ -519,7 +523,11 @@ func (h objectAPIHandlersWrapper) DeleteBucketHandler(w http.ResponseWriter, r *
 	if err := h.bucketPrefixSubstitution(w, r, "DeleteBucket"); err != nil {
 		return
 	}
-	h.core.DeleteObjectHandler(w, r)
+	wr := NewWrapperResponseWriter(w)
+	h.core.DeleteObjectHandler(wr, r)
+	if wr.getCurrentStatus() > 299 {
+		return
+	}
 	if err := h.nodeBucketRequest(r, "DELETE", bucket); err != nil {
 		errCtx := cmd.NewContext(r, w, "DeleteBucket")
 		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
