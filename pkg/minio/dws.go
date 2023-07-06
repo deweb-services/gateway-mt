@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -65,7 +64,7 @@ func (h objectAPIHandlersWrapper) parseNodeHost() string {
 		h.logger.With("error", err).Error("parse node host")
 		return h.nodeHost
 	}
-	return u.Scheme +"://" + u.Host
+	return u.Scheme + "://" + u.Host
 }
 
 func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWriter) (string, error) {
@@ -101,11 +100,11 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 
 func (h objectAPIHandlersWrapper) nodeBucketRequest(r *http.Request, method string, bucketName string) (int, error) {
 	sc := 0
-	u := path.Join(h.nodeHost, nodeBucketPath)
+	u := h.nodeHost + nodeBucketPath
 	var reader io.Reader
 	switch method {
 	case "HEAD", "DELETE":
-		u = path.Join(u, bucketName)
+		u = u + "/" + bucketName
 	case "POST":
 		type payload struct {
 			Name string `json:"name"`
