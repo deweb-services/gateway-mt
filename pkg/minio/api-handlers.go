@@ -9,13 +9,10 @@ import (
 	"path"
 	"strings"
 
-	"go.uber.org/zap"
-
-	"storj.io/gateway-mt/pkg/trustedip"
-
-	"storj.io/gateway-mt/pkg/authclient"
-
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
+	"storj.io/gateway-mt/pkg/authclient"
+	"storj.io/gateway-mt/pkg/trustedip"
 	"storj.io/minio/cmd"
 	xhttp "storj.io/minio/cmd/http"
 )

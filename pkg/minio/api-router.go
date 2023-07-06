@@ -46,7 +46,7 @@ func RegisterAPIRouter(
 		authClient: authClient,
 		trustedIPs: trustedIPs,
 		logger:     logger.Sugar(),
-		nodeToken:  os.Getenv("AUTH_TOKEN"),
+		nodeToken:  os.Getenv("DWS_NODE_TOKEN"),
 	}
 	api.nodeHost = api.parseNodeHost()
 
