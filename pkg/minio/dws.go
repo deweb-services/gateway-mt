@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	nodeBucketPath = "storage/bucket"
+	nodeBucketPath = "api/storage/bucket"
 )
 
 const (
