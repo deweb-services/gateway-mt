@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"path"
 	"strings"
 
 	"github.com/gorilla/mux"
-	"storj.io/gateway-mt/pkg/trustedip"
 	"storj.io/minio/cmd"
 	"storj.io/minio/pkg/bucket/policy"
 )
@@ -21,9 +22,14 @@ const (
 )
 
 const (
+	nodeBucketPath = "storage/bucket"
+)
+
+const (
 	ErrAccessDenied        = "ErrAccessDenied"
 	ErrInternalError       = "ErrInternalError"
 	ErrBucketAlreadyExists = "ErrBucketAlreadyExists"
+	ErrBucketDoesNotExist  = "ErrBucketDoesNotExist"
 )
 
 var apiErrors = map[string]cmd.APIError{
@@ -43,6 +49,23 @@ var apiErrors = map[string]cmd.APIError{
 			"namespace is shared by all users of the system. Please select a different name and try again.",
 		HTTPStatusCode: http.StatusConflict,
 	},
+	ErrBucketDoesNotExist: {
+		Code:           "ErrBucketDoesNotExist",
+		Description:    "The requested bucket does not exist.",
+		HTTPStatusCode: http.StatusConflict,
+	},
+}
+
+func (h objectAPIHandlersWrapper) parseNodeHost() string {
+	if h.nodeHost != "" {
+		return h.nodeHost
+	}
+	u, err := url.Parse(h.uuidResolverHost)
+	if err != nil {
+		h.logger.With("error", err).Error("parse node host")
+		return h.nodeHost
+	}
+	return u.Host
 }
 
 func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWriter) (string, error) {
@@ -76,25 +99,41 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 	return res["uuid"], nil
 }
 
-func (h objectAPIHandlersWrapper) bucketNameIsAvailable(r *http.Request) (bool, error) {
-	funcName := "bucketNameIsAvailable"
-	vars := mux.Vars(r)
-	bucket := vars[VarKeyBucket]
-	if bucket == "" {
-		return false, nil
+func (h objectAPIHandlersWrapper) nodeBucketRequest(r *http.Request, method string, bucketName string) (int, error) {
+	sc := 0
+	u := path.Join(h.nodeHost, nodeBucketPath)
+	var reader io.Reader
+	switch method {
+	case "HEAD", "DELETE":
+		u = path.Join(u, bucketName)
+	case "POST":
+		type payload struct {
+			Name string `json:"name"`
+		}
+		p := payload{Name: bucketName}
+		ba, err := json.Marshal(p)
+		if err != nil {
+			h.logger.With("error", err).Error("nodeBucketRequest marshal request body")
+			return sc, fmt.Errorf("marshal request body error: %w", err)
+		}
+		reader = bytes.NewBuffer(ba)
+	default:
+		h.logger.With("method", method).Error("nodeBucketRequest wrong method")
+		return sc, fmt.Errorf("wrong http method: %s", method)
 	}
-
-	res, err := h.authClient.CheckBucketIsUnique(r.Context(), bucket, trustedip.GetClientIP(h.trustedIPs, r))
+	req, err := http.NewRequestWithContext(r.Context(), method, u, reader)
 	if err != nil {
-		h.logger.With("error", err, "bucket name", bucket).Error("check bucket is unique response error")
-		return false, fmt.Errorf("function: %s, could not get response from bucket resolver: %w", funcName, err)
+		h.logger.With("error", err).Error("nodeBucketRequest new request")
+		return sc, fmt.Errorf("could not create a request: %w", err)
 	}
-
-	if res.Error != "" {
-		h.logger.With("error", err, "result", res).Error("check bucket is unique result error")
-		return false, fmt.Errorf("function: %s, error: %s", funcName, res.Error)
+	req.Header.Set("Authorization", h.nodeToken)
+	resp, err := h.httpClient.Do(req)
+	if err != nil {
+		h.logger.With("error", err).Error("nodeBucketRequest do request")
+		return sc, fmt.Errorf("could not do request: %w", err)
 	}
-	return res.IsAvailable, nil
+	defer resp.Body.Close()
+	return resp.StatusCode, nil
 }
 
 func (h objectAPIHandlersWrapper) bucketPrefixSubstitutionWithoutObject(w http.ResponseWriter, r *http.Request, fName string) error {
@@ -156,4 +195,24 @@ func (m *MockResponseWriter) WriteHeader(statusCode int) {
 
 func (m *MockResponseWriter) GetStatusCode() int {
 	return m.code
+}
+
+type wrapperResponseWriter struct {
+	http.ResponseWriter
+	currentHeader int
+}
+
+func NewWrapperResponseWriter(w http.ResponseWriter) *wrapperResponseWriter {
+	return &wrapperResponseWriter{
+		ResponseWriter: w,
+	}
+}
+
+func (w *wrapperResponseWriter) WriteHeader(statusCode int) {
+	w.currentHeader = statusCode
+	w.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (w *wrapperResponseWriter) getCurrentStatus() int {
+	return w.currentHeader
 }
