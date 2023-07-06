@@ -102,6 +102,9 @@ func (h objectAPIHandlersWrapper) nodeBucketRequest(r *http.Request, method stri
 	sc := 0
 	u := h.nodeHost + nodeBucketPath
 	var reader io.Reader
+	headers := map[string]string{
+		"Authorization": h.nodeToken,
+	}
 	switch method {
 	case "HEAD", "DELETE":
 		u = u + "/" + bucketName
@@ -110,6 +113,7 @@ func (h objectAPIHandlersWrapper) nodeBucketRequest(r *http.Request, method stri
 			Name string `json:"name"`
 		}
 		p := payload{Name: bucketName}
+		headers["Content-Type"] = "application/json"
 		ba, err := json.Marshal(p)
 		if err != nil {
 			h.logger.With("error", err).Error("nodeBucketRequest marshal request body")
@@ -125,7 +129,9 @@ func (h objectAPIHandlersWrapper) nodeBucketRequest(r *http.Request, method stri
 		h.logger.With("error", err).Error("nodeBucketRequest new request")
 		return sc, fmt.Errorf("could not create a request: %w", err)
 	}
-	req.Header.Set("Authorization", h.nodeToken)
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
 	resp, err := h.httpClient.Do(req)
 	if err != nil {
 		h.logger.With("error", err).Error("nodeBucketRequest do request")
