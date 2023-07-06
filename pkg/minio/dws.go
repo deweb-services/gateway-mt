@@ -65,7 +65,7 @@ func (h objectAPIHandlersWrapper) parseNodeHost() string {
 		h.logger.With("error", err).Error("parse node host")
 		return h.nodeHost
 	}
-	return u.Host
+	return u.Scheme + u.Host
 }
 
 func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWriter) (string, error) {
