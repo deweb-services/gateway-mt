@@ -126,7 +126,7 @@ func (h objectAPIHandlersWrapper) nodeBucketRequest(r *http.Request, method stri
 		h.logger.With("error", err).Error("nodeBucketRequest new request")
 		return sc, fmt.Errorf("could not create a request: %w", err)
 	}
-	req.Header.Set("Authorization", "Bearer "+h.nodeToken)
+	req.Header.Set("Authorization", h.nodeToken)
 	resp, err := h.httpClient.Do(req)
 	if err != nil {
 		h.logger.With("error", err).Error("nodeBucketRequest do request")
