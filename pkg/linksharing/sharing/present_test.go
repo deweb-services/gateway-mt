@@ -393,8 +393,8 @@ func TestZipArchiveContentType(t *testing.T) {
 		return SimpleRanger(nil, 0), false, nil
 	}
 	ctx := testcontext.New(t)
-	testZipItemContentType(ctx, t, handler, "test.txt", "bytes=0-", "text/plain; charset=utf-8", http.StatusRequestedRangeNotSatisfiable)
-	testZipItemContentType(ctx, t, handler, "test.txt", "bytes=0-100", "text/plain; charset=utf-8", http.StatusRequestedRangeNotSatisfiable)
+	testZipItemContentType(ctx, t, handler, "test.txt", "bytes=0-", "application/octet-stream", http.StatusRequestedRangeNotSatisfiable)
+	testZipItemContentType(ctx, t, handler, "test.txt", "bytes=0-100", "application/octet-stream", http.StatusRequestedRangeNotSatisfiable)
 	testZipItemContentType(ctx, t, handler, "test.html", "", "text/plain", http.StatusOK) // by default, html isn't allowed for security reasons
 	testZipItemContentType(ctx, t, handler, "test.jpg", "", "image/jpeg", http.StatusOK)
 	testZipItemContentType(ctx, t, handler, "test.qwe", "", "application/octet-stream", http.StatusOK)

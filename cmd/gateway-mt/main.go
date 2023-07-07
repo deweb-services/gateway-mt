@@ -81,20 +81,18 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(new(bool), "advanced", false, "if used in with -h, print advanced flags help")
 	cfgstruct.SetBoolAnnotation(rootCmd.PersistentFlags(), "advanced", cfgstruct.BasicHelpAnnotationName, true)
 	cfgstruct.SetBoolAnnotation(rootCmd.PersistentFlags(), "config-dir", cfgstruct.BasicHelpAnnotationName, true)
-	initViper()
 
 	setUsageFunc(rootCmd)
 }
 
 func initViper() {
 	viper.AutomaticEnv()
-	//flags := rootCmd.Flags()
-	//flags.StringVar(&dwsCfg.DwsNodeToken, "dws_node_token", "", "token for accessing dws node")
+	flags := rootCmd.Flags()
+	flags.StringVar(&dwsCfg.DwsNodeToken, "dws_node_token", "", "token for accessing dws node")
+	flags.StringVar(&dwsCfg.UuidResolverAddr, "uuid_resolver_host", "", "full path to dws node service for resolving uuids")
 
-	//flags.StringVar(&dwsCfg.UuidResolverAddr, "uuid_resolver_host", "", "full path to dws node service for resolving uuids")
-
-	//_ = viper.BindPFlag("dws_node_token", flags.Lookup("dws_node_token"))
-	//_ = viper.BindPFlag("uuid_resolver_host", flags.Lookup("uuid_resolver_host"))
+	_ = viper.BindPFlag("dws_node_token", flags.Lookup("dws_node_token"))
+	_ = viper.BindPFlag("uuid_resolver_host", flags.Lookup("uuid_resolver_host"))
 }
 
 func cmdRun(cmd *cobra.Command, _ []string) (err error) {
