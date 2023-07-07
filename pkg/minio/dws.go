@@ -49,9 +49,9 @@ var apiErrors = map[string]cmd.APIError{
 		HTTPStatusCode: http.StatusConflict,
 	},
 	ErrBucketDoesNotExist: {
-		Code:           "ErrBucketDoesNotExist",
-		Description:    "The requested bucket does not exist.",
-		HTTPStatusCode: http.StatusConflict,
+		Code:           "NoSuchBucket",
+		Description:    "The specified bucket does not exist",
+		HTTPStatusCode: http.StatusNotFound,
 	},
 }
 
