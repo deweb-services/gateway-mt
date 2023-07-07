@@ -194,4 +194,4 @@ require (
 	storj.io/picobuf v0.0.1 // indirect
 )
 
-replace storj.io/minio v0.0.0-20230509071714-0cbc90f649b1 => github.com/deweb-services/minio-sub v0.0.0-20230629140039-7b58a8448745
+replace storj.io/minio v0.0.0-20230509071714-0cbc90f649b1 => github.com/deweb-services/minio-sub v0.0.0-20230707141532-b13833e9fd1c
