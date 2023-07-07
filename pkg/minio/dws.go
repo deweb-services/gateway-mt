@@ -28,7 +28,7 @@ const (
 	ErrAccessDenied        = "ErrAccessDenied"
 	ErrInternalError       = "ErrInternalError"
 	ErrBucketAlreadyExists = "ErrBucketAlreadyExists"
-	ErrBucketDoesNotExist  = "ErrBucketDoesNotExist"
+	ErrNoSuchBucket        = "ErrNoSuchBucket"
 )
 
 var apiErrors = map[string]cmd.APIError{
@@ -48,10 +48,10 @@ var apiErrors = map[string]cmd.APIError{
 			"namespace is shared by all users of the system. Please select a different name and try again.",
 		HTTPStatusCode: http.StatusConflict,
 	},
-	ErrBucketDoesNotExist: {
-		Code:           "ErrBucketDoesNotExist",
-		Description:    "The requested bucket does not exist.",
-		HTTPStatusCode: http.StatusConflict,
+	ErrNoSuchBucket: {
+		Code:           "NoSuchBucket",
+		Description:    "The specified bucket does not exist",
+		HTTPStatusCode: http.StatusNotFound,
 	},
 }
 

@@ -466,7 +466,7 @@ func (h objectAPIHandlersWrapper) HeadBucketHandler(w http.ResponseWriter, r *ht
 	}
 	errCtx := cmd.NewContext(r, w, "HeadBucket")
 	if code >= 200 && code < 300 {
-		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrBucketDoesNotExist], r.URL, false)
+		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrNoSuchBucket], r.URL, false)
 	} else if code == 409 {
 		w.WriteHeader(http.StatusOK)
 	} else {
