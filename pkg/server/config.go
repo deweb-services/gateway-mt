@@ -89,3 +89,8 @@ type uploadConfig struct {
 	PieceHashAlgorithmBlake3 bool `help:"use Blake3 as the piece hash algorithm" default:"false"`
 	RefactoredCodePath       bool `help:"use the new, refactored code path" default:"false"`
 }
+
+type DwsConfig struct {
+	UuidResolverAddr string `help:"full path to dws node service for resolving uuids" releaseDefault:"" devDefault:"localhost"`
+	DwsNodeToken     string `help:"dws node token" releaseDefault:"" devDefault:"localhost"`
+}

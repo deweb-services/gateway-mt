@@ -13,6 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"github.com/zeebo/errs"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -54,6 +55,7 @@ var (
 
 	runCfg   server.Config
 	setupCfg server.Config
+	dwsCfg   server.DwsConfig
 
 	confDir string
 )
@@ -62,6 +64,7 @@ func init() {
 	defaultConfDir := fpath.ApplicationDir("storj", "gateway")
 	cfgstruct.SetupFlag(zap.L(), rootCmd, &confDir, "config-dir", defaultConfDir, "main directory for gateway configuration")
 	defaults := cfgstruct.DefaultsFlag(rootCmd)
+	cobra.OnInitialize(initViper)
 
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(setupCmd)
@@ -78,7 +81,20 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(new(bool), "advanced", false, "if used in with -h, print advanced flags help")
 	cfgstruct.SetBoolAnnotation(rootCmd.PersistentFlags(), "advanced", cfgstruct.BasicHelpAnnotationName, true)
 	cfgstruct.SetBoolAnnotation(rootCmd.PersistentFlags(), "config-dir", cfgstruct.BasicHelpAnnotationName, true)
+	initViper()
+
 	setUsageFunc(rootCmd)
+}
+
+func initViper() {
+	viper.AutomaticEnv()
+	//flags := rootCmd.Flags()
+	//flags.StringVar(&dwsCfg.DwsNodeToken, "dws_node_token", "", "token for accessing dws node")
+
+	//flags.StringVar(&dwsCfg.UuidResolverAddr, "uuid_resolver_host", "", "full path to dws node service for resolving uuids")
+
+	//_ = viper.BindPFlag("dws_node_token", flags.Lookup("dws_node_token"))
+	//_ = viper.BindPFlag("uuid_resolver_host", flags.Lookup("uuid_resolver_host"))
 }
 
 func cmdRun(cmd *cobra.Command, _ []string) (err error) {
@@ -115,7 +131,7 @@ func cmdRun(cmd *cobra.Command, _ []string) (err error) {
 		return err
 	}
 	peer, err := server.New(runCfg, log, trustedClientIPs, corsAllowedOrigins,
-		authclient.New(runCfg.Auth), runCfg.ConcurrentAllowed)
+		authclient.New(runCfg.Auth), runCfg.ConcurrentAllowed, dwsCfg)
 	if err != nil {
 		return err
 	}
