@@ -94,7 +94,8 @@ func testServer(t *testing.T, useTLS, vHostStyle bool, shutdownDelay bool) {
 		ShutdownDelay:  delay,
 		DomainName:     "gateway.local,*.gateway.local",
 	}
-	s, err := server.New(config, zaptest.NewLogger(t), trustedip.NewListTrustAll(), []string{}, nil, 10)
+	s, err := server.New(config, zaptest.NewLogger(t), trustedip.NewListTrustAll(), []string{},
+		nil, 10, server.DwsConfig{})
 	require.NoError(t, err)
 
 	defer ctx.Check(s.Close)

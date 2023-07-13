@@ -6,18 +6,14 @@ package minio
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
-	"go.uber.org/zap"
-
-	"storj.io/gateway-mt/pkg/trustedip"
-
-	"storj.io/gateway-mt/pkg/authclient"
-
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
+	"storj.io/gateway-mt/pkg/authclient"
 	"storj.io/gateway-mt/pkg/server/gw"
 	"storj.io/gateway-mt/pkg/server/middleware"
+	"storj.io/gateway-mt/pkg/trustedip"
 	"storj.io/minio/cmd"
 	xhttp "storj.io/minio/cmd/http"
 )
@@ -32,6 +28,8 @@ func RegisterAPIRouter(
 	authClient *authclient.AuthClient,
 	trustedIPs trustedip.List,
 	logger *zap.Logger,
+	uuidResolverAddr string,
+	dwsNodeToken string,
 ) {
 	api := objectAPIHandlersWrapper{
 		core: cmd.ObjectAPIHandlers{
@@ -39,14 +37,14 @@ func RegisterAPIRouter(
 			CacheAPI:  func() cmd.CacheObjectLayer { return nil },
 		},
 		corsAllowedOrigins: corsAllowedOrigins,
-		uuidResolverHost:   os.Getenv("UUID_RESOLVER_HOST"),
+		uuidResolverHost:   uuidResolverAddr,
 		httpClient: &http.Client{
 			Timeout: time.Second * 15,
 		},
 		authClient: authClient,
 		trustedIPs: trustedIPs,
 		logger:     logger.Sugar(),
-		nodeToken:  os.Getenv("DWS_NODE_TOKEN"),
+		nodeToken:  dwsNodeToken,
 	}
 	api.nodeHost = api.parseNodeHost()
 
