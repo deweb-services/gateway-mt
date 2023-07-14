@@ -1,6 +1,7 @@
 ARG DOCKER_ARCH
 ARG GO_VERSION
-FROM ${DOCKER_ARCH:-amd64}/golang:${GO_VERSION}-alpine3.16 as builder
+ARG IMAGE_VERSION
+FROM ${DOCKER_ARCH:-amd64}/golang:${GO_VERSION}-alpine${IMAGE_VERSION} as builder
 
 ADD . /authservice
 WORKDIR /authservice
@@ -9,7 +10,7 @@ RUN apk update
 RUN apk add --no-cache git gcc musl-dev
 RUN go build -v -o /tmp/authservice ./cmd/authservice
 
-FROM ${DOCKER_ARCH:-amd64}/alpine
+FROM ${DOCKER_ARCH:-amd64}/alpine:${IMAGE_VERSION}
 
 ENV GOARCH ${GOARCH}
 

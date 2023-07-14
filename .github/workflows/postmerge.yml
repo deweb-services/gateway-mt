@@ -34,6 +34,7 @@ jobs:
           build-args: |
             DOCKER_ARCH=${{ vars.DOCKER_ARCH }}
             GO_VERSION=${{ vars.GO_VERSION }}
+            IMAGE_VERSION=${{ vars.IMAGE_VERSION }}
 
   build-and-push-docker-image-authservice:
     environment: stage
@@ -62,3 +63,4 @@ jobs:
           build-args: |
             DOCKER_ARCH=${{ vars.DOCKER_ARCH }}
             GO_VERSION=${{ vars.GO_VERSION }}
+            IMAGE_VERSION=${{ vars.IMAGE_VERSION }}
