@@ -15,8 +15,7 @@ FROM ${DOCKER_ARCH:-amd64}/alpine:${IMAGE_VERSION}
 ENV GOARCH ${GOARCH}
 
 RUN apk update
-RUN apk add --no-cache ca-certificates tzdata
-RUN update-ca-certificates
+RUN apk add --no-cache tzdata
 
 EXPOSE 20000
 WORKDIR /app
