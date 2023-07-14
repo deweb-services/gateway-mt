@@ -13,6 +13,7 @@ FROM ${DOCKER_ARCH:-amd64}/alpine
 
 ENV GOARCH ${GOARCH}
 
+RUN apk update
 RUN apk add --no-cache ca-certificates tzdata
 RUN update-ca-certificates
 
