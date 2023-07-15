@@ -1,7 +1,8 @@
 ARG DOCKER_ARCH
 ARG GO_VERSION
 ARG IMAGE_VERSION
-FROM ${DOCKER_ARCH:-amd64}/golang:${GO_VERSION}-alpine${IMAGE_VERSION} as builder
+ARG DOCKER_OS
+FROM --platform=${DOCKER_OS}/${DOCKER_ARCH} golang:${GO_VERSION}-alpine${IMAGE_VERSION} as builder
 
 ADD . /authservice
 WORKDIR /authservice
@@ -10,12 +11,13 @@ RUN apk update
 RUN apk add --no-cache git gcc musl-dev
 RUN go build -v -o /tmp/authservice ./cmd/authservice
 
-FROM ${DOCKER_ARCH:-amd64}/alpine:${IMAGE_VERSION}
+FROM --platform=${DOCKER_OS}/${DOCKER_ARCH} alpine:${IMAGE_VERSION}
 
 ENV GOARCH ${GOARCH}
 
-RUN apk update
-RUN apk add --no-cache tzdata
+RUN apk update && \
+    apk add --no-cache ca-certificates tzdata && \
+    update-ca-certificates
 
 EXPOSE 20000
 WORKDIR /app
