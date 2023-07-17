@@ -56,7 +56,7 @@ type Peer struct {
 
 // New returns new instance of an S3 compatible http server.
 func New(config Config, log *zap.Logger, trustedIPs trustedip.List, corsAllowedOrigins []string,
-	authClient *authclient.AuthClient, concurrentAllowed uint, dwsConfig DwsConfig) (*Peer, error) {
+	authClient *authclient.AuthClient, concurrentAllowed uint, dwsConfig minio.DwsConfig) (*Peer, error) {
 	r := mux.NewRouter()
 	r.SkipClean(true)
 	r.UseEncodedPath()

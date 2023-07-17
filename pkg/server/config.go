@@ -8,6 +8,7 @@ import (
 
 	"storj.io/common/memory"
 	"storj.io/gateway-mt/pkg/authclient"
+	"storj.io/gateway-mt/pkg/minio"
 	"storj.io/gateway/miniogw"
 )
 
@@ -31,6 +32,7 @@ type Config struct {
 	ConcurrentAllowed    uint          `help:"number of allowed concurrent uploads or downloads per macaroon head" default:"500"` // see S3 CLI's max_concurrent_requests
 	ShutdownDelay        time.Duration `help:"time to delay server shutdown while returning 503s on the health endpoint" devDefault:"1s" releaseDefault:"45s"`
 
+	DwsCfg                  minio.DwsConfig
 	Auth                    authclient.Config
 	S3Compatibility         miniogw.S3CompatibilityConfig
 	Client                  ClientConfig
@@ -88,9 +90,4 @@ type ClientConfig struct {
 type uploadConfig struct {
 	PieceHashAlgorithmBlake3 bool `help:"use Blake3 as the piece hash algorithm" default:"false"`
 	RefactoredCodePath       bool `help:"use the new, refactored code path" default:"false"`
-}
-
-type DwsConfig struct {
-	UuidResolverAddr string `help:"full path to dws node service for resolving uuids" releaseDefault:"" devDefault:"localhost"`
-	DwsNodeToken     string `help:"dws node token" releaseDefault:"" devDefault:"localhost"`
 }

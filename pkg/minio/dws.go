@@ -55,6 +55,11 @@ var apiErrors = map[string]cmd.APIError{
 	},
 }
 
+type DwsConfig struct {
+	UuidResolverAddr string `help:"full path to dws node service for resolving uuids" default:"localhost:6005"`
+	DwsNodeToken     string `help:"dws node token" releaseDefault:"" default:"secret"`
+}
+
 func (h objectAPIHandlersWrapper) parseNodeHost() string {
 	if h.nodeHost != "" {
 		return h.nodeHost
