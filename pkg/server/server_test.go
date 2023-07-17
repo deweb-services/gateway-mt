@@ -23,6 +23,7 @@ import (
 
 	"storj.io/common/pkcrypto"
 	"storj.io/common/testcontext"
+	"storj.io/gateway-mt/pkg/minio"
 	"storj.io/gateway-mt/pkg/server"
 	"storj.io/gateway-mt/pkg/trustedip"
 )
@@ -95,7 +96,7 @@ func testServer(t *testing.T, useTLS, vHostStyle bool, shutdownDelay bool) {
 		DomainName:     "gateway.local,*.gateway.local",
 	}
 	s, err := server.New(config, zaptest.NewLogger(t), trustedip.NewListTrustAll(), []string{},
-		nil, 10, server.DwsConfig{})
+		nil, 10, minio.DwsConfig{})
 	require.NoError(t, err)
 
 	defer ctx.Check(s.Close)
