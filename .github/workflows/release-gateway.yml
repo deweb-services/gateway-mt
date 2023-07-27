@@ -14,7 +14,7 @@ on:
 
 jobs:
 
-  build-gateway-stage:
+  build-gateway-staging:
     environment: staging
     runs-on: ubuntu-latest
     steps:
@@ -55,7 +55,7 @@ jobs:
             IMAGE_VERSION=${{ vars.IMAGE_VERSION }}
             DOCKER_OS=${{ vars.DOCKER_OS }}
   
-  build-gateway-prod:
+  build-gateway-production:
     environment: production
     runs-on: ubuntu-latest
     steps:

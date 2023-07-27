@@ -13,7 +13,7 @@ on:
         required: true
 
 jobs:
-  build-authservice-stage:
+  build-authservice-staging:
     environment: staging
     runs-on: ubuntu-latest
     steps:
@@ -54,7 +54,7 @@ jobs:
             IMAGE_VERSION=${{ vars.IMAGE_VERSION }}
             DOCKER_OS=${{ vars.DOCKER_OS }}
 
-  build-authservice-prod:
+  build-authservice-production:
     environment: production
     runs-on: ubuntu-latest
     steps:
