@@ -43,8 +43,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           tags: |
-            ghcr.io/${{ github.repository }}/stage/authservice:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/stage/authservice:${{ inputs.version }}
+            ghcr.io/${{ github.repository }}/staging/authservice:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/staging/authservice:${{ inputs.version }}
           push: true
           context: .
           file: cmd/authservice/Dockerfile
@@ -84,8 +84,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           tags: |
-            ghcr.io/${{ github.repository }}/prod/authservice:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/prod/authservice:${{ inputs.version }}
+            ghcr.io/${{ github.repository }}/production/authservice:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/production/authservice:${{ inputs.version }}
           push: true
           context: .
           file: cmd/authservice/Dockerfile
