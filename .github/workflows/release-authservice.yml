@@ -14,7 +14,7 @@ on:
 
 jobs:
   build-authservice-stage:
-    environment: stage
+    environment: staging
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -55,7 +55,7 @@ jobs:
             DOCKER_OS=${{ vars.DOCKER_OS }}
 
   build-authservice-prod:
-    environment: prod
+    environment: production
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
