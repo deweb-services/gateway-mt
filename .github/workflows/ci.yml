@@ -38,7 +38,7 @@ jobs:
         run: go test -v ./...
 
   build-docker-image-gateway-mt:
-    environment: stage
+    environment: development
     needs: ["lint", "test"]
     runs-on: ubuntu-latest
 
@@ -70,7 +70,7 @@ jobs:
             DOCKER_OS=${{ vars.DOCKER_OS }}
 
   build-docker-image-authservice:
-    environment: stage
+    environment: development
     needs: ["lint", "test"]
     runs-on: ubuntu-latest
 

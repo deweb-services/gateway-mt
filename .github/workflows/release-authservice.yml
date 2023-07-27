@@ -14,7 +14,7 @@ on:
 
 jobs:
   build-authservice-stage:
-    environment: stage
+    environment: staging
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -43,8 +43,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           tags: |
-            ghcr.io/${{ github.repository }}/stage/authservice:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/stage/authservice:${{ inputs.version }}
+            ghcr.io/${{ github.repository }}/staging/authservice:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/staging/authservice:${{ inputs.version }}
           push: true
           context: .
           file: cmd/authservice/Dockerfile
@@ -55,7 +55,7 @@ jobs:
             DOCKER_OS=${{ vars.DOCKER_OS }}
 
   build-authservice-prod:
-    environment: prod
+    environment: production
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -84,8 +84,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           tags: |
-            ghcr.io/${{ github.repository }}/prod/authservice:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/prod/authservice:${{ inputs.version }}
+            ghcr.io/${{ github.repository }}/production/authservice:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/production/authservice:${{ inputs.version }}
           push: true
           context: .
           file: cmd/authservice/Dockerfile
