@@ -40,6 +40,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           tags: |
+            ghcr.io/${{ github.repository }}/staging/authservice:latest
             ghcr.io/${{ github.repository }}/staging/authservice:${{ github.sha }}
             ghcr.io/${{ github.repository }}/staging/authservice:${{ steps.create_tag.outputs.new_tag }}
           push: true
@@ -84,6 +85,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           tags: |
+            ghcr.io/${{ github.repository }}/production/authservice:latest
             ghcr.io/${{ github.repository }}/production/authservice:${{ github.sha }}
             ghcr.io/${{ github.repository }}/production/authservice:${{ steps.create_tag.outputs.new_tag }}
           push: true
