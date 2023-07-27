@@ -44,7 +44,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           tags: |
-            ghcr.io/${{ github.repository }}/staging/gateway-mt:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/staging/gateway-mt:${{ inputs.commit }}
             ghcr.io/${{ github.repository }}/staging/gateway-mt:${{ inputs.version }}
           push: true
           context: .
@@ -85,7 +85,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           tags: |
-            ghcr.io/${{ github.repository }}/production/gateway-mt:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/production/gateway-mt:${{ inputs.commit }}
             ghcr.io/${{ github.repository }}/production/gateway-mt:${{ inputs.version }}
           push: true
           context: .
