@@ -5,7 +5,7 @@ on:
     inputs:
       version:
         type: string
-        description: gateway-mt desired release version
+        description: authservice desired release version
         required: true
       commit:
         type: string
