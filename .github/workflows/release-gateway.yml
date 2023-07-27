@@ -22,8 +22,8 @@ jobs:
       - name: Create tag
         id: create_tag
         uses: anothrNick/github-tag-action@1.64.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
           INITIAL_VERSION: ${{ env.INITIAL_VERSION }}
@@ -67,8 +67,8 @@ jobs:
       - name: Create tag
         id: create_tag
         uses: anothrNick/github-tag-action@1.64.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
           INITIAL_VERSION: ${{ env.INITIAL_VERSION }}
