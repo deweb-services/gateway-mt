@@ -14,7 +14,7 @@ on:
 
 jobs:
 
-  build-and-push-docker-image-gateway-mt:
+  build-gateway-stage:
     environment: stage
     runs-on: ubuntu-latest
     steps:
@@ -46,6 +46,45 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/stage/gateway-mt:${{ github.sha }}
             ghcr.io/${{ github.repository }}/stage/gateway-mt:${{ inputs.version }}
+          push: true
+          context: .
+          file: cmd/gateway-mt/Dockerfile
+          build-args: |
+            DOCKER_ARCH=${{ vars.DOCKER_ARCH }}
+            GO_VERSION=${{ vars.GO_VERSION }}
+            IMAGE_VERSION=${{ vars.IMAGE_VERSION }}
+            DOCKER_OS=${{ vars.DOCKER_OS }}
+  
+  build-gateway-prod:
+    environment: prod
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.commit }}
+
+      - name: Create tag
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          custom_tag: ${{ inputs.version }}
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          tags: |
             ghcr.io/${{ github.repository }}/prod/gateway-mt:${{ github.sha }}
             ghcr.io/${{ github.repository }}/prod/gateway-mt:${{ inputs.version }}
           push: true
