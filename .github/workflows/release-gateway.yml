@@ -31,7 +31,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/gateway-mt:latest
             ghcr.io/${{ github.repository }}/gateway-mt:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/gateway-mt:${{ github.ref }}
+            ghcr.io/${{ github.repository }}/gateway-mt:${{ github.ref_name }}
           push: true
           context: .
           file: cmd/gateway-mt/Dockerfile
