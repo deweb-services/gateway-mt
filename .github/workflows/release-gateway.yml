@@ -1,32 +1,19 @@
 name: Release gateway-mt
 
 on:
-  pull_request:
-    types: ["closed"]
-    branches:
-      - main
+  push:
+    tags:        
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
 
   build-gateway-staging:
-    if: github.event.pull_request.merged == true
-    environment: staging
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ inputs.commit }}
-
-      - name: Create tag
-        id: create_tag
-        uses: anothrNick/github-tag-action@1.64.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true
-          DEFAULT_BUMP: patch
-          INITIAL_VERSION: ${{ env.INITIAL_VERSION }}
       
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
@@ -42,55 +29,9 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           tags: |
-            ghcr.io/${{ github.repository }}/staging/gateway-mt:latest
-            ghcr.io/${{ github.repository }}/staging/gateway-mt:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/staging/gateway-mt:${{ steps.create_tag.outputs.new_tag }}
-          push: true
-          context: .
-          file: cmd/gateway-mt/Dockerfile
-          build-args: |
-            DOCKER_ARCH=${{ vars.DOCKER_ARCH }}
-            GO_VERSION=${{ vars.GO_VERSION }}
-            IMAGE_VERSION=${{ vars.IMAGE_VERSION }}
-            DOCKER_OS=${{ vars.DOCKER_OS }}
-  
-  build-gateway-production:
-    if: github.event.pull_request.merged == true
-    environment: production
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.commit }}
-
-      - name: Create tag
-        id: create_tag
-        uses: anothrNick/github-tag-action@1.64.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true
-          DEFAULT_BUMP: patch
-          INITIAL_VERSION: ${{ env.INITIAL_VERSION }}
-      
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          tags: |
-            ghcr.io/${{ github.repository }}/production/gateway-mt:latest
-            ghcr.io/${{ github.repository }}/production/gateway-mt:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/production/gateway-mt:${{ steps.create_tag.outputs.new_tag }}
+            ghcr.io/${{ github.repository }}/gateway-mt:latest
+            ghcr.io/${{ github.repository }}/gateway-mt:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/gateway-mt:${{ github.ref }}
           push: true
           context: .
           file: cmd/gateway-mt/Dockerfile
