@@ -47,6 +47,11 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+      
+      - name: test
+        run: |
+          echo $PWD
+          ls -a
 
       - name: Build authservice dev docker image
         uses: docker/build-push-action@v4
