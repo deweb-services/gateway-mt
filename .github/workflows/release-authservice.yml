@@ -30,7 +30,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/authservice:latest
             ghcr.io/${{ github.repository }}/authservice:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/authservice:${{ github.ref }}
+            ghcr.io/${{ github.repository }}/authservice:${{ github.ref_name }}
           push: true
           context: .
           file: cmd/authservice/Dockerfile
