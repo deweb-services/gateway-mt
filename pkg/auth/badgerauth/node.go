@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/hex"
+	"fmt"
 	"net"
 	"sort"
 	"sync"
@@ -317,6 +318,10 @@ func (node *Node) PingDB(ctx context.Context) error {
 
 // Run runs the server and the associated servers.
 func (node *Node) Run(ctx context.Context) error {
+	node.log.Info("attempt to get other nodes addresses")
+	node.config.Join = GetAddrs()
+	node.log.Info(fmt.Sprintf("new set of nodes addresses: %v", node.config.Join))
+
 	if len(node.config.Join) == 0 || len(node.config.CertsDir) == 0 {
 		node.log.Warn("node is alone in the cluster (empty join and/or certs-dir parameters)")
 	}
