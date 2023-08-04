@@ -47,6 +47,7 @@ jobs:
             ${{ steps.meta.outputs.tags }}
           push: true
           context: .
+          platforms: linux/amd64,darwin/arm64
           file: cmd/gateway-mt/Dockerfile
           build-args: |
             DOCKER_ARCH=${{ vars.DOCKER_ARCH }}
