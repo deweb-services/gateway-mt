@@ -46,7 +46,7 @@ jobs:
             ${{ steps.meta.outputs.tags }}
           push: true
           context: .
-          platforms: linux/amd64,darwin/arm64
+          platforms: linux/amd64,linux/arm64,darwin/arm64
           file: cmd/authservice/Dockerfile
           build-args: |
             DOCKER_ARCH=${{ vars.DOCKER_ARCH }}
