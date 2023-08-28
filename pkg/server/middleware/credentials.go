@@ -63,6 +63,7 @@ var (
 func AccessKey(authClient *authclient.AuthClient, trustedIPs trustedip.List, log *zap.Logger) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log.Debug("authenticating through authservice")
 			var err error
 			ctx := r.Context()
 			defer mon.TaskNamed("AccessKey")(&ctx)(&err)
@@ -96,6 +97,8 @@ func AccessKey(authClient *authclient.AuthClient, trustedIPs trustedip.List, log
 				next.ServeHTTP(w, r.WithContext(context.WithValue(ctx, credentialsCV{}, &creds)))
 				return
 			}
+
+			log.Debug("authentication through authservice successful")
 
 			// return a new context that contains the access grant
 			credentials := Credentials{AccessKey: accessKeyID, AuthServiceResponse: authResponse, Error: err}
