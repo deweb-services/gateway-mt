@@ -432,25 +432,39 @@ func (h objectAPIHandlersWrapper) PutBucketHandler(w http.ResponseWriter, r *htt
 	ctx := r.Context()
 	defer mon.Task()(&ctx)(nil)
 	bucket := mux.Vars(r)[VarKeyBucket]
-	code, err := h.nodeBucketRequest(r, "POST", bucket)
-	if err != nil {
-		errCtx := cmd.NewContext(r, w, "CreateBucket")
-		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
-		return
-	}
-	if code >= 400 && code < 500 {
-		errCtx := cmd.NewContext(r, w, "CreateBucket")
-		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrBucketAlreadyExists], r.URL, false)
-		return
-	} else if code >= 500 {
-		errCtx := cmd.NewContext(r, w, "CreateBucket")
-		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
-		return
-	}
 	if err := h.bucketPrefixSubstitution(w, r, "PutBucket"); err != nil {
 		return
 	}
+	nodeResponseFailed := true
+	wr := NewWrapperResponseWriter(w)
 	h.core.PutObjectHandler(w, r)
+	if wr.getCurrentStatus() >= 300 {
+		return
+	}
+	defer func() {
+		if nodeResponseFailed {
+			wr := NewWrapperResponseWriter(w)
+			h.core.DeleteObjectHandler(wr, r)
+		}
+	}()
+	code, err := h.nodeBucketRequest(r, "POST", bucket)
+	errCtx := cmd.NewContext(r, w, "CreateBucket")
+	apiError := cmd.APIError{}
+	switch {
+	case err != nil:
+		apiError = apiErrors[ErrInternalError]
+	case code >= 400 && code < 500:
+		apiError = apiErrors[ErrBucketAlreadyExists]
+	case code >= 500:
+		apiError = apiErrors[ErrInternalError]
+	default:
+		nodeResponseFailed = false
+	}
+	if apiError.HTTPStatusCode > 0 {
+		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
+		return
+	}
+
 }
 
 // HeadBucketHandler stands for HeadBucket
@@ -522,13 +536,14 @@ func (h objectAPIHandlersWrapper) DeleteBucketHandler(w http.ResponseWriter, r *
 	if err := h.bucketPrefixSubstitution(w, r, "DeleteBucket"); err != nil {
 		return
 	}
+
 	wr := NewWrapperResponseWriter(w)
 	h.core.DeleteObjectHandler(wr, r)
-	if wr.getCurrentStatus() > 299 {
+	if wr.getCurrentStatus() >= 300 {
 		return
 	}
 	code, err := h.nodeBucketRequest(r, "DELETE", bucket)
-	if err != nil || (code > 299 || code < 200) {
+	if err != nil || (code >= 300 || code < 200) {
 		errCtx := cmd.NewContext(r, w, "DeleteBucket")
 		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
 	}
