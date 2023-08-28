@@ -3,6 +3,7 @@ package minio
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -75,6 +76,9 @@ func (h objectAPIHandlersWrapper) parseNodeHost() string {
 func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWriter) (string, error) {
 	ctx := cmd.NewContext(r, w, "")
 	cred, _, _ := cmd.CheckRequestAuthTypeCredential(ctx, r, policy.HeadBucketAction, "", "")
+	if cred.AccessKey == "" {
+		return "", errors.New("failed to get access key from auth header")
+	}
 	m := map[string]any{
 		"accessKey": cred.AccessKey,
 	}
@@ -83,6 +87,7 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 		h.logger.With("error", err).Error("marshal getUserID request")
 		return "", fmt.Errorf("json marshall error: %w", err)
 	}
+	h.logger.Debugf("making request to get user uuid")
 	resp, err := h.httpClient.Post(h.uuidResolverHost, "application/json", bytes.NewBuffer(b))
 	if err != nil {
 		h.logger.With("error", err).Error("getUserID post request")
@@ -99,6 +104,8 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 		h.logger.With("error", err, "body", string(ba)).Error("getUserID unmarshall body")
 		return "", fmt.Errorf("could not unmarshal http response, error: %w", err)
 	}
+
+	h.logger.Debugf("got user uuid: %s", res["uuid"])
 
 	return res["uuid"], nil
 }
