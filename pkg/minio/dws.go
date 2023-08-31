@@ -214,22 +214,22 @@ func (m *MockResponseWriter) GetStatusCode() int {
 	return m.code
 }
 
-type wrapperResponseWriter struct {
+type WrapperResponseWriter struct {
 	http.ResponseWriter
 	currentHeader int
 }
 
-func NewWrapperResponseWriter(w http.ResponseWriter) *wrapperResponseWriter {
-	return &wrapperResponseWriter{
+func NewWrapperResponseWriter(w http.ResponseWriter) *WrapperResponseWriter {
+	return &WrapperResponseWriter{
 		ResponseWriter: w,
 	}
 }
 
-func (w *wrapperResponseWriter) WriteHeader(statusCode int) {
+func (w *WrapperResponseWriter) WriteHeader(statusCode int) {
 	w.currentHeader = statusCode
 	w.ResponseWriter.WriteHeader(statusCode)
 }
 
-func (w *wrapperResponseWriter) getCurrentStatus() int {
+func (w *WrapperResponseWriter) getCurrentStatus() int {
 	return w.currentHeader
 }
