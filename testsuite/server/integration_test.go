@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	minio2 "storj.io/gateway-mt/pkg/minio"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -64,7 +66,7 @@ func TestUploadDownload(t *testing.T) {
 		authClient := authclient.New(gwConfig.Auth)
 
 		gateway, err := server.New(gwConfig, zaptest.NewLogger(t).Named("gateway"), trustedip.NewListTrustAll(),
-			[]string{}, authClient, 10, server.DwsConfig{})
+			[]string{}, authClient, 10, minio2.DwsConfig{})
 		require.NoError(t, err)
 
 		defer ctx.Check(gateway.Close)
