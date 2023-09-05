@@ -1,6 +1,7 @@
 package minio
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -216,18 +217,24 @@ func (m *MockResponseWriter) GetStatusCode() int {
 
 type WrapperResponseWriter struct {
 	http.ResponseWriter
+	flusher       *bufio.Writer
 	currentHeader int
 }
 
 func NewWrapperResponseWriter(w http.ResponseWriter) *WrapperResponseWriter {
 	return &WrapperResponseWriter{
 		ResponseWriter: w,
+		flusher:        bufio.NewWriter(w),
 	}
 }
 
 func (w *WrapperResponseWriter) WriteHeader(statusCode int) {
 	w.currentHeader = statusCode
 	w.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (w *WrapperResponseWriter) Flush() {
+	w.flusher.Flush()
 }
 
 func (w *WrapperResponseWriter) getCurrentStatus() int {
