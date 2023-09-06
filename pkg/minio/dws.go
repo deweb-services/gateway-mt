@@ -17,9 +17,11 @@ import (
 )
 
 const (
-	Sep          = "/"
-	VarKeyBucket = "bucket"
-	VarKeyObject = "object"
+	Sep            = "/"
+	VarKeyBucket   = "bucket"
+	VarKeyObject   = "object"
+	VarKeyIsBucket = "is_bucket"
+	VarValTrue     = "true"
 )
 
 const (
