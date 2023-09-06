@@ -435,21 +435,33 @@ func (h objectAPIHandlersWrapper) PutBucketHandler(w http.ResponseWriter, r *htt
 	if err := h.bucketPrefixSubstitution(w, r, "PutBucket"); err != nil {
 		return
 	}
-	nodeResponseFailed := true
+
+	code, err := h.nodeBucketRequest(r, "HEAD", bucket)
+	if err != nil {
+		errCtx := cmd.NewContext(r, w, "HeadBucket")
+		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
+		return
+	}
+	errCtx := cmd.NewContext(r, w, "CreateBucket")
+	if code >= 200 && code < 300 {
+		// bucket does not exist yes, everything is alright
+	} else if code == 409 {
+		// bucket already exists
+		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrBucketAlreadyExists], r.URL, false)
+		return
+	} else {
+		// node server does not response, error
+		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
+		return
+	}
+
 	wr := NewWrapperResponseWriter(w)
 	h.core.PutObjectHandler(w, r)
 	if wr.getCurrentStatus() >= 300 {
 		return
 	}
-	defer func() {
-		if nodeResponseFailed {
-			wr := NewWrapperResponseWriter(w)
-			h.core.DeleteObjectHandler(wr, r)
-		}
-	}()
-	code, err := h.nodeBucketRequest(r, "POST", bucket)
-	errCtx := cmd.NewContext(r, w, "CreateBucket")
 	apiError := cmd.APIError{}
+	code, err = h.nodeBucketRequest(r, "POST", bucket)
 	switch {
 	case err != nil:
 		apiError = apiErrors[ErrInternalError]
@@ -458,10 +470,9 @@ func (h objectAPIHandlersWrapper) PutBucketHandler(w http.ResponseWriter, r *htt
 	case code >= 500:
 		apiError = apiErrors[ErrInternalError]
 	default:
-		nodeResponseFailed = false
 	}
 	if apiError.HTTPStatusCode > 0 {
-		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
+		cmd.WriteErrorResponse(errCtx, w, apiError, r.URL, false)
 		return
 	}
 
