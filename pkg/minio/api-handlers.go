@@ -538,7 +538,7 @@ func (h objectAPIHandlersWrapper) DeleteBucketHandler(w http.ResponseWriter, r *
 	}
 
 	wr := NewWrapperResponseWriter(w)
-	h.core.DeleteBucketHandler(wr, r)
+	h.core.DeleteObjectHandler(wr, r)
 	h.logger.Debugln("got status of deleting:", wr.getCurrentStatus())
 	if wr.getCurrentStatus() >= 300 {
 		return
