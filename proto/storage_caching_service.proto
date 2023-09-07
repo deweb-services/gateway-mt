@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package storage_caching_service;
+
+option go_package = "storage_caching_service/storage_caching_service_pb";
+
+service StorageCachingService {
+    rpc GetBucketByAccessKey(GetBucketByAccessKeyRequest) returns (GetBucketByAccessKeyResponse) {}
+}
+
+message GetBucketByAccessKeyRequest {
+    string accessKey = 1;
+}
+
+message GetBucketByAccessKeyResponse {
+    string bucket = 1;
+}

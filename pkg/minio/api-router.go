@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"storj.io/gateway-mt/pkg/authclient"
+	dwsProto "storj.io/gateway-mt/pkg/minio/dws/proto"
 	"storj.io/gateway-mt/pkg/server/gw"
 	"storj.io/gateway-mt/pkg/server/middleware"
 	"storj.io/gateway-mt/pkg/trustedip"
@@ -26,6 +27,7 @@ func RegisterAPIRouter(
 	concurrentAllowed uint,
 	corsAllowedOrigins []string,
 	authClient *authclient.AuthClient,
+	dwsClient dwsProto.StorageCachingServiceClient,
 	trustedIPs trustedip.List,
 	logger *zap.Logger,
 	uuidResolverAddr string,
@@ -42,6 +44,7 @@ func RegisterAPIRouter(
 			Timeout: time.Second * 15,
 		},
 		authClient: authClient,
+		dwsClient:  dwsClient,
 		trustedIPs: trustedIPs,
 		logger:     logger.Sugar(),
 		nodeToken:  dwsNodeToken,

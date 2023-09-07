@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	dwsProto "storj.io/gateway-mt/pkg/minio/dws/proto"
 	"storj.io/minio/cmd"
 	"storj.io/minio/pkg/bucket/policy"
 )
@@ -82,35 +83,13 @@ func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWrit
 	if cred.AccessKey == "" {
 		return "", errors.New("failed to get access key from auth header")
 	}
-	m := map[string]any{
-		"accessKey": cred.AccessKey,
-	}
-	b, err := json.Marshal(m)
+	res, err := h.dwsClient.GetBucketByAccessKey(ctx, &dwsProto.GetBucketByAccessKeyRequest{AccessKey: cred.AccessKey})
 	if err != nil {
-		h.logger.With("error", err).Error("marshal getUserID request")
-		return "", fmt.Errorf("json marshall error: %w", err)
-	}
-	h.logger.Debugf("making request to get user uuid")
-	resp, err := h.httpClient.Post(h.uuidResolverHost, "application/json", bytes.NewBuffer(b))
-	if err != nil {
-		h.logger.With("error", err).Error("getUserID post request")
-		return "", fmt.Errorf("http client post error: %w", err)
-	}
-	defer resp.Body.Close()
-	ba, err := io.ReadAll(resp.Body)
-	if err != nil {
-		h.logger.With("error", err).Error("getUserID read body")
-		return "", fmt.Errorf("could not read http response, error: %w", err)
-	}
-	var res map[string]string
-	if err := json.Unmarshal(ba, &res); err != nil {
-		h.logger.With("error", err, "body", string(ba)).Error("getUserID unmarshall body")
-		return "", fmt.Errorf("could not unmarshal http response, error: %w", err)
+		h.logger.Error("failed to get bucket by accessKey: %w", err)
+		return "", fmt.Errorf("failed to get bucket by access key: %w", err)
 	}
 
-	h.logger.Debugf("got user uuid: %s", res["uuid"])
-
-	return res["uuid"], nil
+	return res.Bucket, nil
 }
 
 func (h objectAPIHandlersWrapper) nodeBucketRequest(r *http.Request, method string, bucketName string) (int, error) {

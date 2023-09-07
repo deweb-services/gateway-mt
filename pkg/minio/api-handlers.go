@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"storj.io/gateway-mt/pkg/authclient"
+	dwsProto "storj.io/gateway-mt/pkg/minio/dws/proto"
 	"storj.io/gateway-mt/pkg/trustedip"
 	"storj.io/minio/cmd"
 	xhttp "storj.io/minio/cmd/http"
@@ -23,6 +24,7 @@ type objectAPIHandlersWrapper struct {
 	corsAllowedOrigins []string
 	httpClient         *http.Client
 	authClient         *authclient.AuthClient
+	dwsClient          dwsProto.StorageCachingServiceClient
 	uuidResolverHost   string
 	nodeHost           string
 	trustedIPs         trustedip.List
