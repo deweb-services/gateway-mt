@@ -111,9 +111,7 @@ func New(config Config, log *zap.Logger, trustedIPs trustedip.List, corsAllowedO
 		return nil, err
 	}
 
-	opts := []grpc.DialOption{
-		grpc.WithTimeout(10 * time.Second),
-	}
+	opts := []grpc.DialOption{}
 	conn, err := grpc.Dial(config.DwsCfg.UuidResolverAddr, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init grpc connection to DWS: %w", err)
