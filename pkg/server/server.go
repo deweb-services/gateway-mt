@@ -112,7 +112,7 @@ func New(config Config, log *zap.Logger, trustedIPs trustedip.List, corsAllowedO
 	}
 
 	opts := []grpc.DialOption{
-		grpc.ConnectionTimeout(10 * time.Second),
+		grpc.WithTimeout(10 * time.Second),
 	}
 	conn, err := grpc.Dial(config.DwsCfg.UuidResolverAddr, opts...)
 	if err != nil {
