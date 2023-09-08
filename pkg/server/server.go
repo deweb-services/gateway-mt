@@ -19,6 +19,7 @@ import (
 	"github.com/zeebo/errs"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"storj.io/common/rpc/rpcpool"
 	"storj.io/gateway-mt/pkg/authclient"
 	"storj.io/gateway-mt/pkg/httpserver"
@@ -111,7 +112,9 @@ func New(config Config, log *zap.Logger, trustedIPs trustedip.List, corsAllowedO
 		return nil, err
 	}
 
-	opts := []grpc.DialOption{}
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials())
+	}
 	conn, err := grpc.Dial(config.DwsCfg.UuidResolverAddr, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init grpc connection to DWS: %w", err)
