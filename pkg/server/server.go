@@ -113,7 +113,7 @@ func New(config Config, log *zap.Logger, trustedIPs trustedip.List, corsAllowedO
 	}
 
 	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials())
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
 	conn, err := grpc.Dial(config.DwsCfg.UuidResolverAddr, opts...)
 	if err != nil {
