@@ -18,10 +18,13 @@ import (
 	mhttp "github.com/spacemonkeygo/monkit/v3/http"
 	"github.com/zeebo/errs"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"storj.io/common/rpc/rpcpool"
 	"storj.io/gateway-mt/pkg/authclient"
 	"storj.io/gateway-mt/pkg/httpserver"
 	"storj.io/gateway-mt/pkg/minio"
+	dwsProto "storj.io/gateway-mt/pkg/minio/dws/proto"
 	"storj.io/gateway-mt/pkg/server/gw"
 	"storj.io/gateway-mt/pkg/server/middleware"
 	"storj.io/gateway-mt/pkg/trustedip"
@@ -109,7 +112,16 @@ func New(config Config, log *zap.Logger, trustedIPs trustedip.List, corsAllowedO
 		return nil, err
 	}
 
-	minio.RegisterAPIRouter(r, layer, dedupedDomains, concurrentAllowed, corsAllowedOrigins, authClient, trustedIPs,
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	}
+	conn, err := grpc.Dial(config.DwsCfg.UuidResolverAddr, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init grpc connection to DWS: %w", err)
+	}
+	dwsClient := dwsProto.NewStorageCachingServiceClient(conn)
+
+	minio.RegisterAPIRouter(r, layer, dedupedDomains, concurrentAllowed, corsAllowedOrigins, authClient, dwsClient, trustedIPs,
 		log, dwsConfig.UuidResolverAddr, dwsConfig.DwsNodeToken)
 
 	r.Use(func(handler http.Handler) http.Handler {
