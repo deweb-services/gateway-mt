@@ -544,7 +544,6 @@ func (h objectAPIHandlersWrapper) DeleteBucketHandler(w http.ResponseWriter, r *
 	ctx := r.Context()
 	defer mon.Task()(&ctx)(nil)
 	bucket := mux.Vars(r)[VarKeyBucket]
-	mux.Vars(r)[VarKeyIsBucket] = VarValTrue
 	if err := h.bucketPrefixSubstitution(w, r, "DeleteBucket"); err != nil {
 		return
 	}
