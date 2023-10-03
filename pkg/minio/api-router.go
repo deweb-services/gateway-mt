@@ -31,6 +31,7 @@ func RegisterAPIRouter(
 	trustedIPs trustedip.List,
 	logger *zap.Logger,
 	uuidResolverAddr string,
+	dwsBackendHost string,
 	dwsNodeToken string,
 ) {
 	api := objectAPIHandlersWrapper{
@@ -46,10 +47,10 @@ func RegisterAPIRouter(
 		authClient: authClient,
 		dwsClient:  dwsClient,
 		trustedIPs: trustedIPs,
+		nodeHost:   dwsBackendHost,
 		logger:     logger.Sugar(),
 		nodeToken:  dwsNodeToken,
 	}
-	api.nodeHost = api.parseNodeHost()
 
 	// limit the conccurrency of uploads and downloads per macaroon head
 	limit := middleware.NewMacaroonLimiter(concurrentAllowed,

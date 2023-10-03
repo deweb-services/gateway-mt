@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -60,19 +59,8 @@ var apiErrors = map[string]cmd.APIError{
 
 type DwsConfig struct {
 	UuidResolverAddr string `help:"full path to dws node service for resolving uuids" default:"localhost:6005"`
+	DWSBackendHost   string `help:"dws node host" default:"localhost:6005"`
 	DwsNodeToken     string `help:"dws node token" releaseDefault:"" default:"secret"`
-}
-
-func (h objectAPIHandlersWrapper) parseNodeHost() string {
-	if h.nodeHost != "" {
-		return h.nodeHost
-	}
-	u, err := url.Parse(h.uuidResolverHost)
-	if err != nil {
-		h.logger.With("error", err).Error("parse node host")
-		return h.nodeHost
-	}
-	return u.Scheme + "://" + u.Host
 }
 
 func (h objectAPIHandlersWrapper) getUserID(r *http.Request, w http.ResponseWriter) (string, error) {
