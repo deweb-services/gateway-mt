@@ -94,6 +94,9 @@ cert-magic.staging: false
 # full path to dws node service for resolving uuids
 # dws-cfg.uuid-resolver-addr: localhost:6005
 
+# full path to dws node service for resolving uuids
+# dws-cfg.dws-backend-host: localhost:6005
+
 # tells libuplink to perform in-memory encoding on file upload
 # encode-in-memory: true
 
