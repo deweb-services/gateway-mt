@@ -441,6 +441,7 @@ func (h objectAPIHandlersWrapper) PutBucketHandler(w http.ResponseWriter, r *htt
 	code, err := h.nodeBucketRequest(r, "HEAD", bucket)
 	if err != nil {
 		errCtx := cmd.NewContext(r, w, "HeadBucket")
+		h.logger.With("bucket", bucket).Errorf("failed while making HeadBucket request: %s", err)
 		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
 		return
 	}
@@ -453,6 +454,7 @@ func (h objectAPIHandlersWrapper) PutBucketHandler(w http.ResponseWriter, r *htt
 		return
 	} else {
 		// node server does not response, error
+		h.logger.With("bucket", bucket).Errorf("failed to call HeadBucket: %s, statusCode: %d", err, code)
 		cmd.WriteErrorResponse(errCtx, w, apiErrors[ErrInternalError], r.URL, false)
 		return
 	}
@@ -466,10 +468,12 @@ func (h objectAPIHandlersWrapper) PutBucketHandler(w http.ResponseWriter, r *htt
 	code, err = h.nodeBucketRequest(r, "POST", bucket)
 	switch {
 	case err != nil:
+		h.logger.With("bucket", bucket).Errorf("failed while calling PutBucket: %s", err)
 		apiError = apiErrors[ErrInternalError]
 	case code >= 400 && code < 500:
 		apiError = apiErrors[ErrBucketAlreadyExists]
 	case code >= 500:
+		h.logger.With("bucket", bucket).Errorf("failed to call PutBucket: %s, statusCode: %d", err, code)
 		apiError = apiErrors[ErrInternalError]
 	default:
 	}
