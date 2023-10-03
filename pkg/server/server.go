@@ -122,7 +122,7 @@ func New(config Config, log *zap.Logger, trustedIPs trustedip.List, corsAllowedO
 	dwsClient := dwsProto.NewStorageCachingServiceClient(conn)
 
 	minio.RegisterAPIRouter(r, layer, dedupedDomains, concurrentAllowed, corsAllowedOrigins, authClient, dwsClient, trustedIPs,
-		log, dwsConfig.UuidResolverAddr, dwsConfig.DWSBackendHost, dwsConfig.DwsNodeToken)
+		log, dwsConfig.UuidResolverAddr, dwsConfig.DwsBackendHost, dwsConfig.DwsNodeToken)
 
 	r.Use(func(handler http.Handler) http.Handler {
 		return mhttp.TraceHandler(handler, mon)
