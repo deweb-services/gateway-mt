@@ -326,8 +326,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dchest/siphash v1.2.3 h1:QXwFc8cFOR2dSa/gE6o/HokBMWtLUaNDVd+22aKHeEA=
 github.com/dchest/siphash v1.2.3/go.mod h1:0NvQU092bT0ipiFN++/rXm69QG9tVxLAlQHIXMPAkHc=
-github.com/deweb-services/minio-sub v0.0.0-20231004130812-8156c64ba078 h1:EAodVAMX7arz0fBbEO2BxCrbNHGbLzFlmed2aaS6EFM=
-github.com/deweb-services/minio-sub v0.0.0-20231004130812-8156c64ba078/go.mod h1:tNaALPgx7e3WNMauIXVKw2ygXk4+o11XIR672akiI7I=
+github.com/deweb-services/minio-sub v0.0.0-20231004143145-2771918281bb h1:e/K6acIr3dmd4Ive+pqwnoTrPOMO6p5a3mAsPMRw/cg=
+github.com/deweb-services/minio-sub v0.0.0-20231004143145-2771918281bb/go.mod h1:tNaALPgx7e3WNMauIXVKw2ygXk4+o11XIR672akiI7I=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-farm v0.0.0-20190423205320-6a90982ecee2 h1:tdlZCpZ/P9DhczCTSixgIKmwPv6+wP5DGjqLYw5SUiA=
